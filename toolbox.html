@@ -227,6 +227,7 @@
   }
   .status-banner.show{transform:translateY(0);}
   .status-banner.saving{background:#333;}
+  .status-banner.info{background:#333;}
   .status-banner.success{background:#1e8e3e;}
   .status-banner.error{background:var(--red);}
 
@@ -419,11 +420,13 @@ function setupMainSig(){
   mainPad.addEventListener('beginStroke', () => {
     document.getElementById('mainSigPlaceholder').style.display = 'none';
   });
+  mainPad.addEventListener('endStroke', scheduleSave);
   registerCanvasForResize(canvas, mainPad);
 }
 function clearMainSig(){
   mainPad.clear();
   document.getElementById('mainSigPlaceholder').style.display = 'block';
+  scheduleSave();
 }
 
 /* ============ AGENDA ITEMS ============ */
@@ -438,16 +441,18 @@ function addAgendaItem(prefill){
       <h3>AGENDA ITEM ${id}</h3>
       ${id > 1 ? `<button type="button" class="remove-link" onclick="removeAgendaItem(${id})">Remove</button>` : ''}
     </div>
-    <input type="text" id="agendaTopic-${id}" placeholder="Topic (e.g. Working at heights)">
+    <input type="text" id="agendaTopic-${id}" placeholder="Topic (e.g. Working at heights)" value="${(prefill && prefill.topic) || ''}">
     <label>Discussion / issues raised by team</label>
-    <textarea id="agendaText-${id}" placeholder="Notes from the discussion..."></textarea>
+    <textarea id="agendaText-${id}" placeholder="Notes from the discussion...">${(prefill && prefill.text) || ''}</textarea>
   `;
   document.getElementById('agendaContainer').appendChild(div);
+  div.querySelectorAll('input,textarea').forEach(f => f.addEventListener('input', scheduleSave));
 }
 function removeAgendaItem(id){
   const el = document.getElementById('agenda-' + id);
   if (el) el.remove();
   renumberAgenda();
+  scheduleSave();
 }
 function renumberAgenda(){
   const items = document.querySelectorAll('.agenda-item');
@@ -457,7 +462,7 @@ function renumberAgenda(){
 }
 
 /* ============ WORKER ROWS ============ */
-function addWorkerRow(){
+function addWorkerRow(prefill){
   workerCount++;
   const id = workerCount;
   const div = document.createElement('div');
@@ -466,7 +471,7 @@ function addWorkerRow(){
   div.innerHTML = `
     <div>
       <div class="colhead">Worker Full Name</div>
-      <input type="text" id="workerName-${id}" placeholder="Full name">
+      <input type="text" id="workerName-${id}" placeholder="Full name" value="${(prefill && prefill.name) || ''}">
     </div>
     <div>
       <div class="colhead">Signature</div>
@@ -481,32 +486,133 @@ function addWorkerRow(){
     </div>
   `;
   document.getElementById('workerContainer').appendChild(div);
+  div.querySelector('input[type=text]').addEventListener('input', scheduleSave);
 
   const canvas = document.getElementById(`workerSigCanvas-${id}`);
   resizeCanvas(canvas);
   const pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', penColor:'#111' });
   const placeholder = div.querySelector('.sig-placeholder');
   pad.addEventListener('beginStroke', () => { placeholder.style.display = 'none'; });
+  pad.addEventListener('endStroke', scheduleSave);
   workerPads[id] = pad;
   registerCanvasForResize(canvas, pad);
+
+  if(prefill && prefill.sig && prefill.sig.length){
+    pad.fromData(prefill.sig);
+    placeholder.style.display = 'none';
+  }
 }
 function clearWorkerSig(id){
   workerPads[id].clear();
   document.querySelector(`#workerSigBox-${id} .sig-placeholder`).style.display = 'block';
+  scheduleSave();
 }
 function removeWorkerRow(id){
   const el = document.getElementById('worker-' + id);
   if (el) el.remove();
   delete workerPads[id];
+  scheduleSave();
 }
 
 /* ============ INIT ============ */
-document.getElementById('addAgendaBtn').addEventListener('click', () => addAgendaItem());
-document.getElementById('addWorkerBtn').addEventListener('click', () => addWorkerRow());
+document.getElementById('addAgendaBtn').addEventListener('click', () => { addAgendaItem(); scheduleSave(); });
+document.getElementById('addWorkerBtn').addEventListener('click', () => { addWorkerRow(); scheduleSave(); });
+
+/* ============ AUTOSAVE / RESTORE ============ */
+const STORAGE_KEY = 'cartella_toolbox_draft_v1';
+let saveDebounceTimer = null;
+function scheduleSave(){
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(saveDraft, 400);
+}
+
+function collectState(){
+  const agenda = [];
+  document.querySelectorAll('.agenda-item').forEach(el => {
+    agenda.push({
+      topic: el.querySelector('input[type=text]')?.value || '',
+      text: el.querySelector('textarea')?.value || ''
+    });
+  });
+
+  const workers = [];
+  document.querySelectorAll('.worker-row').forEach(el => {
+    const idMatch = el.id.match(/worker-(\d+)/);
+    const wid = idMatch ? idMatch[1] : null;
+    const pad = wid ? workerPads[wid] : null;
+    workers.push({
+      name: el.querySelector('input[type=text]')?.value || '',
+      sig: pad && !pad.isEmpty() ? pad.toData() : null
+    });
+  });
+
+  return {
+    project: document.getElementById('projectName').value,
+    conductedBy: document.getElementById('conductedBy').value,
+    date: document.getElementById('meetingDate').value,
+    mainSig: mainPad && !mainPad.isEmpty() ? mainPad.toData() : null,
+    agenda, workers
+  };
+}
+
+function saveDraft(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+  }catch(err){
+    // Storage full or unavailable — fail silently, submitting still works.
+  }
+}
+
+function loadDraft(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(err){
+    return null;
+  }
+}
+
+function clearSavedDraft(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(err){}
+}
+
+function restoreFromDraft(draft){
+  document.getElementById('projectName').value = draft.project || '';
+  document.getElementById('conductedBy').value = draft.conductedBy || '';
+  document.getElementById('meetingDate').value = draft.date || '';
+
+  if(draft.mainSig && draft.mainSig.length){
+    mainPad.fromData(draft.mainSig);
+    document.getElementById('mainSigPlaceholder').style.display = 'none';
+  }
+
+  if(draft.agenda && draft.agenda.length){
+    draft.agenda.forEach(a => addAgendaItem(a));
+  }else{
+    addAgendaItem(); addAgendaItem(); addAgendaItem();
+  }
+
+  if(draft.workers && draft.workers.length){
+    draft.workers.forEach(w => addWorkerRow(w));
+  }else{
+    for (let i = 0; i < 8; i++) addWorkerRow();
+  }
+}
 
 setupMainSig();
-addAgendaItem(); addAgendaItem(); addAgendaItem();
-for (let i = 0; i < 8; i++) addWorkerRow();
+
+const existingDraft = loadDraft();
+if(existingDraft){
+  restoreFromDraft(existingDraft);
+  showBanner('Restored your unsaved draft from last time.', 'info');
+}else{
+  addAgendaItem(); addAgendaItem(); addAgendaItem();
+  for (let i = 0; i < 8; i++) addWorkerRow();
+}
+
+document.getElementById('projectName').addEventListener('input', scheduleSave);
+document.getElementById('conductedBy').addEventListener('input', scheduleSave);
+document.getElementById('meetingDate').addEventListener('change', scheduleSave);
 
 /* ============ VALIDATION ============ */
 function clearErrors(){
@@ -669,7 +775,10 @@ async function generatePdfBase64(){
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
 document.getElementById('resetBtn').addEventListener('click', () => {
-  if (confirm('Clear the whole form and start again?')) window.location.reload();
+  if (confirm('Clear the whole form and start again? This will also delete your saved draft.')){
+    clearSavedDraft();
+    window.location.reload();
+  }
 });
 
 /* ============ SUBMIT ============ */
@@ -693,6 +802,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     await submitViaHiddenForm(filename, pdfBase64);
     hideOverlay();
     showBanner('Toolbox talk saved successfully.', 'success');
+    clearSavedDraft();
     setTimeout(() => { window.location.reload(); }, 2000);
   } catch (err){
     hideOverlay();
