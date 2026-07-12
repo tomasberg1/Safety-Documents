@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Point of Work Risk Assessment - Cartella</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
+<style>
+  :root{
+    --red:#D8232A;
+    --red-dark:#a91a20;
+    --ink:#1c1c1c;
+    --black:#1a1a1a;
+    --gray-line:#cfcfcf;
+    --gray-bg:#f5f5f5;
+    --gray-text:#555;
+  }
+  *{box-sizing:border-box;}
+  html{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+  }
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--gray-bg);
+    color:var(--black);
+    padding-bottom:40px;
+    overscroll-behavior-y:contain;
+  }
+  header.brand{
+    background:var(--ink);color:#fff;padding:22px 24px 20px;
+    display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  }
+  header.brand .logo-img{height:44px;width:auto;display:block;}
+  header.brand .contact{font-size:11px;line-height:1.7;color:#d8d8d8;text-align:right;}
+  .titlebar{background:var(--red);color:#fff;padding:12px 24px;font-size:17px;font-weight:600;letter-spacing:0.3px;}
+  @media (max-width:600px){
+    header.brand{flex-direction:column;}
+    header.brand .contact{text-align:left;}
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:16px;}
+  .card{
+    background:#fff;
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    border:1px solid #e8e8e8;
+  }
+  .section-title{
+    color:var(--red);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    margin:0 0 12px 0;
+    border-bottom:2px solid var(--red);
+    padding-bottom:6px;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:#333;
+    margin-bottom:5px;
+    margin-top:12px;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=date], input[type=time], textarea{
+    width:100%;
+    padding:10px 12px;
+    font-size:15px;
+    border:1px solid #ccc;
+    border-radius:7px;
+    font-family:inherit;
+    background:#fff;
+  }
+  input[type=date], input[type=time]{
+    display:block;
+    box-sizing:border-box;
+    width:100% !important;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input:focus, textarea:focus{
+    outline:none;
+    border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(227,30,36,0.12);
+  }
+  textarea{resize:vertical;min-height:70px;}
+  .field-error input, .field-error textarea{
+    border-color:var(--red);
+    background:#fff5f5;
+  }
+  .field-error .choice-group{
+    outline:2px solid var(--red);
+    outline-offset:4px;
+    border-radius:6px;
+  }
+  .error-msg{
+    color:var(--red);
+    font-size:12.5px;
+    font-weight:600;
+    margin-top:5px;
+    display:none;
+  }
+  .field-error .error-msg{display:block;}
+
+  /* choice chips (checkbox / radio groups) */
+  .choice-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .choice{position:relative;}
+  .choice input{position:absolute;opacity:0;width:0;height:0;}
+  .choice label{
+    display:inline-block;margin:0;padding:8px 14px;
+    border:1px solid #ccc;border-radius:20px;
+    font-size:13px;font-weight:600;color:#444;background:#fff;
+    cursor:pointer;user-select:none;
+  }
+  .choice input:checked + label{background:var(--red);border-color:var(--red);color:#fff;}
+  .choice input:focus + label{box-shadow:0 0 0 3px rgba(227,30,36,0.18);}
+  .choice-sm label{padding:6px 11px;font-size:12px;}
+
+  /* guidance note */
+  .note{
+    background:#fdecec;border:1px solid #f5c2c2;border-radius:7px;
+    padding:11px 13px;font-size:12.5px;color:#7a1f1f;line-height:1.55;margin-top:4px;
+  }
+  .note strong{color:var(--red-dark);}
+
+  /* confirm checklist */
+  .checklist{margin-top:8px;}
+  .checklist .cl-item{
+    display:flex;align-items:flex-start;gap:11px;
+    padding:11px 0;border-top:1px solid #eee;
+  }
+  .checklist .cl-item:first-child{border-top:none;}
+  .checklist input[type=checkbox]{
+    appearance:none;-webkit-appearance:none;
+    flex:0 0 auto;width:24px;height:24px;margin:0;
+    border:1.6px solid #bbb;border-radius:6px;background:#fff;cursor:pointer;position:relative;
+  }
+  .checklist input[type=checkbox]:checked{background:var(--red);border-color:var(--red);}
+  .checklist input[type=checkbox]:checked::after{
+    content:"";position:absolute;left:8px;top:4px;width:5px;height:10px;
+    border:solid #fff;border-width:0 2.4px 2.4px 0;transform:rotate(45deg);
+  }
+  .checklist label{margin:0;font-size:13.5px;font-weight:500;color:#333;line-height:1.35;padding-top:3px;cursor:pointer;}
+
+  .sig-box{
+    border:1.5px dashed #bbb;
+    border-radius:7px;
+    background:#fafafa;
+    position:relative;
+    touch-action:none;
+    height:140px;
+    overflow:hidden;
+  }
+  .sig-box canvas{width:100%;height:100%;display:block;touch-action:none;}
+  .sig-placeholder{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    color:#aaa;font-size:13px;pointer-events:none;
+  }
+  .sig-actions{display:flex;justify-content:flex-end;margin-top:6px;}
+  .btn-clear{
+    background:none;border:none;color:var(--gray-text);font-size:12.5px;
+    font-weight:600;text-decoration:underline;padding:4px;cursor:pointer;
+  }
+
+  .entry-item{
+    border-top:1px solid #eee;
+    padding-top:14px;
+    margin-top:14px;
+  }
+  .entry-item:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+  .entry-head{
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .entry-head h3{
+    font-size:13.5px;color:var(--red);margin:0;font-weight:700;letter-spacing:0.3px;
+  }
+  .remove-link{
+    background:none;border:none;color:#999;font-size:12px;cursor:pointer;
+    text-decoration:underline;padding:2px;
+  }
+
+  /* additional people rows (name + mini signature) */
+  .worker-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    align-items:start;
+    padding:12px 0;
+    border-top:1px solid #eee;
+  }
+  .worker-row:first-of-type{border-top:none;padding-top:0;}
+  .worker-row .colhead{
+    font-size:11px;font-weight:700;color:#888;text-transform:uppercase;
+    letter-spacing:0.4px;margin-bottom:5px;
+  }
+  .worker-mini-sig{
+    height:70px;border:1.5px dashed #bbb;border-radius:6px;background:#fafafa;
+    position:relative;overflow:hidden;touch-action:none;
+  }
+  .worker-mini-sig canvas{width:100%;height:100%;display:block;touch-action:none;}
+  .worker-mini-sig .sig-placeholder{font-size:11px;}
+  .worker-row .sig-actions{justify-content:flex-start;}
+  .remove-worker{grid-column:1 / -1;text-align:right;}
+
+  .add-btn{
+    width:100%;
+    padding:12px;
+    background:#fff;
+    border:1.5px dashed var(--red);
+    color:var(--red);
+    font-weight:700;
+    font-size:14px;
+    border-radius:8px;
+    margin-top:14px;
+    cursor:pointer;
+  }
+  .add-btn:active{background:#fff0f0;}
+
+  .submit-btn{
+    width:100%;
+    padding:16px;
+    background:var(--red);
+    color:#fff;
+    border:none;
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:0.4px;
+    border-radius:9px;
+    cursor:pointer;
+    margin-top:6px;
+    box-shadow:0 2px 8px rgba(227,30,36,0.3);
+  }
+  .submit-btn:active{background:#c81a1f;}
+  .submit-btn:disabled{background:#e0a2a4;box-shadow:none;}
+
+  .btn-secondary{
+    width:100%;
+    padding:14px;
+    background:#fff;
+    color:var(--gray-text);
+    border:1px solid #ccc;
+    font-weight:700;
+    font-size:14px;
+    border-radius:9px;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .btn-secondary:active{background:#f5f5f5;}
+
+  .status-banner{
+    position:fixed;top:0;left:0;right:0;
+    padding:14px 16px;
+    text-align:center;
+    font-weight:600;
+    font-size:14px;
+    color:#fff;
+    z-index:999;
+    transform:translateY(-100%);
+    transition:transform 0.25s ease;
+  }
+  .status-banner.show{transform:translateY(0);}
+  .status-banner.saving{background:#333;}
+  .status-banner.info{background:#333;}
+  .status-banner.success{background:#1e8e3e;}
+  .status-banner.error{background:var(--red);}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    display:none;align-items:center;justify-content:center;z-index:1000;
+    padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .overlay-card{
+    background:#fff;border-radius:12px;padding:22px;text-align:center;
+    max-width:320px;
+  }
+  .overlay-card .spinner{
+    width:34px;height:34px;border:3px solid #eee;border-top-color:var(--red);
+    border-radius:50%;margin:0 auto 14px auto;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .overlay-card p{margin:0;font-size:14px;color:#333;}
+
+  .foot-note{
+    text-align:center;font-size:11px;color:#999;margin-top:16px;
+  }
+
+  .capturing .add-btn,
+  .capturing .remove-link,
+  .capturing .btn-clear,
+  .capturing .submit-btn,
+  .capturing .btn-secondary,
+  .capturing .foot-note,
+  .capturing .status-banner,
+  .capturing .sig-placeholder{
+    display:none !important;
+  }
+  .capturing .sig-box,
+  .capturing .worker-mini-sig{
+    border:1px solid var(--gray-line);
+  }
+
+  @media print{
+    /* Force backgrounds/colours to print so the dark header + red bars (and the
+       light Cartella logo that sits on them) render as they do on screen. */
+    *{
+      -webkit-print-color-adjust:exact !important;
+      print-color-adjust:exact !important;
+    }
+    @page{ margin:12mm; }
+    html,body{ background:#fff !important; padding:0 !important; }
+    .wrap{ max-width:100%; margin:0; padding:0; }
+    .add-btn,.remove-link,.btn-clear,.submit-btn,.btn-secondary,.foot-note,.status-banner,.overlay{display:none !important;}
+    header.brand,.titlebar{ break-inside:avoid; page-break-inside:avoid; }
+    .card>div,.entry-item,.worker-row,.sig-box,.worker-mini-sig,.choice-group,
+    .note,.checklist,.cl-item,input,textarea,label{
+      break-inside:avoid; page-break-inside:avoid;
+    }
+    .section-title{ break-after:avoid; page-break-after:avoid; }
+    .card{ box-shadow:none; border:1px solid #ddd; margin-bottom:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="statusBanner" class="status-banner"></div>
+
+<header class="brand">
+  <div>
+    <img class="logo-img" id="brandLogo" src="data:image/png;base64,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" alt="Cartella Electrical">
+  </div>
+  <div class="contact">
+    p&nbsp; 1300 973 287<br>
+    a&nbsp; PO Box 1076, Lutwyche, QLD 4030<br>
+    e&nbsp; info@cartella.com.au<br>
+    w&nbsp; www.cartella.com.au
+  </div>
+</header>
+<div class="titlebar">Point of work risk assessment</div>
+
+<div class="wrap">
+
+  <!-- ============ TASK DETAILS ============ -->
+  <div class="card">
+    <p class="section-title">Task Details</p>
+
+    <div id="f-project">
+      <label>Project / Site Name</label>
+      <input type="text" id="projectName" placeholder="e.g. Melbourne St">
+      <div class="error-msg">Enter the project or site name.</div>
+    </div>
+
+    <div id="f-worker">
+      <label>Your Name</label>
+      <input type="text" id="workerName" placeholder="Full name">
+      <div class="error-msg">Enter your name.</div>
+    </div>
+
+    <div id="f-date">
+      <label>Date</label>
+      <input type="date" id="powraDate">
+      <div class="error-msg">Select the date.</div>
+    </div>
+
+    <div>
+      <label>Time</label>
+      <input type="time" id="powraTime">
+    </div>
+
+    <div id="f-task">
+      <label>Task / Activity About to Be Done</label>
+      <textarea id="task" placeholder="What are you about to do? Keep it to this specific task."></textarea>
+      <div class="error-msg">Describe the task.</div>
+    </div>
+
+    <div>
+      <label>Exact Location on Site</label>
+      <input type="text" id="location" placeholder="e.g. Level 2 switchboard room">
+    </div>
+  </div>
+
+  <!-- ============ BEFORE YOU START ============ -->
+  <div class="card">
+    <p class="section-title">Before You Start — Take 5</p>
+    <div class="note">
+      <strong>Stop. Take 5.</strong> Tick each item once you've confirmed it. If you can't tick one,
+      fix it first — or stop and ask your supervisor before you start.
+    </div>
+
+    <div class="checklist" id="checklist">
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_0" value="Trained and competent for this task"><label for="ck_0">I am trained and competent for this task</label></div>
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_1" value="Tools & equipment in good condition and test-tagged"><label for="ck_1">My tools and equipment are in good condition and test-tagged</label></div>
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_2" value="Correct PPE for this task"><label for="ck_2">I have the correct PPE for this task</label></div>
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_3" value="Work area and access/egress clear and safe"><label for="ck_3">My work area and access/egress are clear and safe</label></div>
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_4" value="Hazards to self and others identified"><label for="ck_4">I've identified the hazards to myself and others nearby</label></div>
+      <div class="cl-item"><input type="checkbox" name="check" id="ck_5" value="First aid, emergency exits and isolation points known"><label for="ck_5">I know where first aid, emergency exits and isolation points are</label></div>
+    </div>
+
+    <div id="f-isolation">
+      <label>Does this task need electrical isolation / proving de-energised?</label>
+      <div class="choice-group" id="isolationGroup">
+        <span class="choice"><input type="radio" name="isolation" id="iso_0" value="Yes"><label for="iso_0">Yes</label></span>
+        <span class="choice"><input type="radio" name="isolation" id="iso_1" value="No"><label for="iso_1">No</label></span>
+      </div>
+      <div class="error-msg">Select an option.</div>
+    </div>
+
+    <div>
+      <label>Isolation Details / Permit No. (if applicable)</label>
+      <input type="text" id="isolationDetails" placeholder="Isolation point, tag numbers, permit reference...">
+    </div>
+
+    <div id="f-swms">
+      <label>Does this task need a SWMS or permit (heights, confined space, hot work, live work)?</label>
+      <div class="choice-group" id="swmsGroup">
+        <span class="choice"><input type="radio" name="swmsReq" id="sw_0" value="Yes"><label for="sw_0">Yes</label></span>
+        <span class="choice"><input type="radio" name="swmsReq" id="sw_1" value="No"><label for="sw_1">No</label></span>
+      </div>
+      <div class="error-msg">Select an option.</div>
+    </div>
+
+    <div>
+      <label>SWMS / Permit Reference (if applicable)</label>
+      <input type="text" id="swmsRef" placeholder="SWMS name/number or permit reference">
+    </div>
+  </div>
+
+  <!-- ============ HAZARDS & CONTROLS ============ -->
+  <div class="card">
+    <p class="section-title">Hazards &amp; Controls</p>
+
+    <div>
+      <label>Hazards Present (select all that apply)</label>
+      <div class="choice-group choice-sm" id="hazardTypeGroup">
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_0" value="Working at height"><label for="hz_0">Working at height</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_1" value="Live electrical / stored energy"><label for="hz_1">Live electrical / stored energy</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_2" value="Overhead / underground services"><label for="hz_2">Overhead / underground services</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_3" value="Manual handling"><label for="hz_3">Manual handling</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_4" value="Slips / trips / falls"><label for="hz_4">Slips / trips / falls</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_5" value="Moving plant or vehicles"><label for="hz_5">Moving plant or vehicles</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_6" value="Hazardous substances"><label for="hz_6">Hazardous substances</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_7" value="Confined space"><label for="hz_7">Confined space</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_8" value="Hot work / fire"><label for="hz_8">Hot work / fire</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_9" value="Noise / dust"><label for="hz_9">Noise / dust</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_10" value="Weather / environment"><label for="hz_10">Weather / environment</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_11" value="Other trades / public"><label for="hz_11">Other trades / public</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_12" value="Housekeeping"><label for="hz_12">Housekeeping</label></span>
+        <span class="choice"><input type="checkbox" name="hazardType" id="hz_13" value="Sharp tools / equipment"><label for="hz_13">Sharp tools / equipment</label></span>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:#888;margin:14px 0 0;">For each significant hazard, note how you'll control it and the risk that remains after the control.</p>
+    <div id="hazardContainer"></div>
+    <button type="button" class="add-btn" id="addHazardBtn">+ Add Hazard &amp; Control</button>
+  </div>
+
+  <!-- ============ ASSESSMENT OUTCOME ============ -->
+  <div class="card">
+    <p class="section-title">Assessment Outcome</p>
+
+    <div>
+      <label>Overall Residual Risk (after controls)</label>
+      <div class="choice-group" id="overallRiskGroup">
+        <span class="choice"><input type="radio" name="overallRisk" id="or_0" value="Low"><label for="or_0">Low</label></span>
+        <span class="choice"><input type="radio" name="overallRisk" id="or_1" value="Medium"><label for="or_1">Medium</label></span>
+        <span class="choice"><input type="radio" name="overallRisk" id="or_2" value="High"><label for="or_2">High</label></span>
+        <span class="choice"><input type="radio" name="overallRisk" id="or_3" value="Critical"><label for="or_3">Critical</label></span>
+      </div>
+    </div>
+
+    <div id="f-proceed">
+      <label>Is it safe to proceed?</label>
+      <div class="choice-group" id="proceedGroup">
+        <span class="choice"><input type="radio" name="proceed" id="pr_0" value="Yes — safe to proceed"><label for="pr_0">Yes — safe to proceed</label></span>
+        <span class="choice"><input type="radio" name="proceed" id="pr_1" value="No — stop & escalate"><label for="pr_1">No — stop &amp; escalate</label></span>
+      </div>
+      <div class="error-msg">Select an option.</div>
+    </div>
+
+    <div>
+      <label>If not safe / concerns — what needs to happen first?</label>
+      <textarea id="actionNeeded" placeholder="What has to be sorted before this task can safely start?"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SIGN-OFF ============ -->
+  <div class="card">
+    <p class="section-title">Sign-off</p>
+
+    <div id="f-sig">
+      <label>Signature</label>
+      <div class="sig-box" id="mainSigBox">
+        <canvas id="mainSigCanvas"></canvas>
+        <div class="sig-placeholder" id="mainSigPlaceholder">Sign here</div>
+      </div>
+      <div class="sig-actions"><button type="button" class="btn-clear" onclick="clearMainSig()">Clear</button></div>
+      <div class="error-msg">Signature is required.</div>
+    </div>
+  </div>
+
+  <!-- ============ OTHERS ON THIS TASK ============ -->
+  <div class="card">
+    <p class="section-title">Others Working on This Task</p>
+    <p style="font-size:12px;color:#888;margin:-4px 0 4px;">Anyone else covered by this assessment can add their name and sign. Leave blank if you're working alone.</p>
+    <div id="workerContainer"></div>
+    <button type="button" class="add-btn" id="addWorkerBtn">+ Add Person</button>
+  </div>
+
+  <button type="button" class="submit-btn" id="submitBtn">Submit Risk Assessment</button>
+  <button type="button" class="btn-secondary" id="printBtn">Save / Print as PDF</button>
+  <button type="button" class="btn-secondary" id="resetBtn">Start New Form</button>
+  <p class="foot-note">Cartella Services Pty Ltd — Point of Work Risk Assessment</p>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="spinner"></div>
+    <p id="overlayText">Saving...</p>
+  </div>
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+// Paste the /exec URL of the Apps Script deployment for the POWRA folder here.
+const SCRIPT_URL = "PASTE_POWRA_EXEC_URL_HERE";
+
+/* Full list of the "Before you start" checklist items, so the PDF can show which
+   were NOT confirmed as well as which were. Keep in sync with the checkboxes above. */
+const CHECK_ITEMS = [
+  "Trained and competent for this task",
+  "Tools & equipment in good condition and test-tagged",
+  "Correct PPE for this task",
+  "Work area and access/egress clear and safe",
+  "Hazards to self and others identified",
+  "First aid, emergency exits and isolation points known"
+];
+
+/* ============ STATE ============ */
+let hazardCount = 0;
+let workerCount = 0;
+let mainPad = null;
+const workerPads = {}; // id -> SignaturePad
+
+/* ============ CANVAS RESIZE MANAGEMENT ============
+   A single debounced listener that only resizes a canvas if its box actually
+   changed size, preserving any signature already drawn. */
+const managedCanvases = [];
+function registerCanvasForResize(canvas, pad){
+  const box = canvas.parentElement;
+  managedCanvases.push({ canvas, pad, lastWidth: box.clientWidth, lastHeight: box.clientHeight });
+}
+function resizeCanvas(canvas){
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  const box = canvas.parentElement;
+  canvas.width = box.clientWidth * ratio;
+  canvas.height = box.clientHeight * ratio;
+  canvas.getContext('2d').scale(ratio, ratio);
+}
+function resizeAllCanvases(){
+  managedCanvases.forEach(entry => {
+    if (!entry.canvas.isConnected) return;
+    const box = entry.canvas.parentElement;
+    const newW = box.clientWidth, newH = box.clientHeight;
+    if (newW === entry.lastWidth && newH === entry.lastHeight) return;
+    const data = entry.pad.isEmpty() ? null : entry.pad.toData();
+    resizeCanvas(entry.canvas);
+    entry.pad.clear();
+    if (data) entry.pad.fromData(data);
+    entry.lastWidth = newW;
+    entry.lastHeight = newH;
+  });
+}
+let resizeDebounceTimer = null;
+function scheduleResize(){
+  clearTimeout(resizeDebounceTimer);
+  resizeDebounceTimer = setTimeout(resizeAllCanvases, 200);
+}
+window.addEventListener('resize', scheduleResize);
+window.addEventListener('orientationchange', scheduleResize);
+
+/* ============ MAIN SIGNATURE ============ */
+function setupMainSig(){
+  const canvas = document.getElementById('mainSigCanvas');
+  resizeCanvas(canvas);
+  mainPad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', penColor:'#111' });
+  mainPad.addEventListener('beginStroke', () => {
+    document.getElementById('mainSigPlaceholder').style.display = 'none';
+  });
+  mainPad.addEventListener('endStroke', scheduleSave);
+  registerCanvasForResize(canvas, mainPad);
+}
+function clearMainSig(){
+  mainPad.clear();
+  document.getElementById('mainSigPlaceholder').style.display = 'block';
+  scheduleSave();
+}
+
+/* ============ HAZARD & CONTROL ROWS ============ */
+function addHazardRow(prefill){
+  hazardCount++;
+  const id = hazardCount;
+  const div = document.createElement('div');
+  div.className = 'entry-item';
+  div.id = 'hazard-' + id;
+  div.innerHTML = `
+    <div class="entry-head">
+      <h3>HAZARD ${id}</h3>
+      ${id > 1 ? `<button type="button" class="remove-link" onclick="removeHazardRow(${id})">Remove</button>` : ''}
+    </div>
+    <label>Hazard</label>
+    <input type="text" id="hazardName-${id}" placeholder="What could cause harm?" value="${(prefill && prefill.name) || ''}">
+    <label>Control Measure</label>
+    <textarea id="hazardControl-${id}" placeholder="How will you eliminate or reduce it?">${(prefill && prefill.control) || ''}</textarea>
+    <label>Residual Risk (after control)</label>
+    <div class="choice-group" id="rowRiskGroup-${id}">
+      <span class="choice"><input type="radio" name="rowRisk-${id}" id="hr${id}_0" value="Low"><label for="hr${id}_0">Low</label></span>
+      <span class="choice"><input type="radio" name="rowRisk-${id}" id="hr${id}_1" value="Medium"><label for="hr${id}_1">Medium</label></span>
+      <span class="choice"><input type="radio" name="rowRisk-${id}" id="hr${id}_2" value="High"><label for="hr${id}_2">High</label></span>
+    </div>
+  `;
+  document.getElementById('hazardContainer').appendChild(div);
+  div.querySelectorAll('input,textarea').forEach(f => f.addEventListener('input', scheduleSave));
+  div.querySelectorAll('input[type=radio]').forEach(f => f.addEventListener('change', scheduleSave));
+  if (prefill && prefill.risk) setRadio('rowRisk-' + id, prefill.risk);
+}
+function removeHazardRow(id){
+  const el = document.getElementById('hazard-' + id);
+  if (el) el.remove();
+  renumberHazards();
+  scheduleSave();
+}
+function renumberHazards(){
+  document.querySelectorAll('#hazardContainer .entry-item').forEach((el, idx) => {
+    el.querySelector('h3').textContent = 'HAZARD ' + (idx + 1);
+  });
+}
+
+/* ============ OTHER PEOPLE ROWS (name + mini signature) ============ */
+function addWorkerRow(prefill){
+  workerCount++;
+  const id = workerCount;
+  const div = document.createElement('div');
+  div.className = 'worker-row';
+  div.id = 'worker-' + id;
+  div.innerHTML = `
+    <div>
+      <div class="colhead">Full Name</div>
+      <input type="text" id="workerName-${id}" placeholder="Full name" value="${(prefill && prefill.name) || ''}">
+    </div>
+    <div>
+      <div class="colhead">Signature</div>
+      <div class="worker-mini-sig" id="workerSigBox-${id}">
+        <canvas id="workerSigCanvas-${id}"></canvas>
+        <div class="sig-placeholder">Sign</div>
+      </div>
+      <div class="sig-actions"><button type="button" class="btn-clear" onclick="clearWorkerSig(${id})">Clear</button></div>
+    </div>
+    <div class="remove-worker">
+      <button type="button" class="remove-link" onclick="removeWorkerRow(${id})">Remove person</button>
+    </div>
+  `;
+  document.getElementById('workerContainer').appendChild(div);
+  div.querySelector('input[type=text]').addEventListener('input', scheduleSave);
+
+  const canvas = document.getElementById(`workerSigCanvas-${id}`);
+  resizeCanvas(canvas);
+  const pad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', penColor:'#111' });
+  const placeholder = div.querySelector('.sig-placeholder');
+  pad.addEventListener('beginStroke', () => { placeholder.style.display = 'none'; });
+  pad.addEventListener('endStroke', scheduleSave);
+  workerPads[id] = pad;
+  registerCanvasForResize(canvas, pad);
+
+  if(prefill && prefill.sig && prefill.sig.length){
+    pad.fromData(prefill.sig);
+    placeholder.style.display = 'none';
+  }
+}
+function clearWorkerSig(id){
+  workerPads[id].clear();
+  document.querySelector(`#workerSigBox-${id} .sig-placeholder`).style.display = 'block';
+  scheduleSave();
+}
+function removeWorkerRow(id){
+  const el = document.getElementById('worker-' + id);
+  if (el) el.remove();
+  delete workerPads[id];
+  scheduleSave();
+}
+
+/* ============ CHOICE HELPERS ============ */
+function getChecked(groupName){
+  return Array.from(document.querySelectorAll(`input[name="${groupName}"]:checked`)).map(i => i.value);
+}
+function getRadio(groupName){
+  const el = document.querySelector(`input[name="${groupName}"]:checked`);
+  return el ? el.value : '';
+}
+function setChecked(groupName, values){
+  if (!values) return;
+  document.querySelectorAll(`input[name="${groupName}"]`).forEach(i => { i.checked = values.includes(i.value); });
+}
+function setRadio(groupName, value){
+  if (!value) return;
+  document.querySelectorAll(`input[name="${groupName}"]`).forEach(i => { i.checked = (i.value === value); });
+}
+
+/* ============ INIT BUTTONS ============ */
+document.getElementById('addHazardBtn').addEventListener('click', () => { addHazardRow(); scheduleSave(); });
+document.getElementById('addWorkerBtn').addEventListener('click', () => { addWorkerRow(); scheduleSave(); });
+
+/* ============ AUTOSAVE / RESTORE ============ */
+const STORAGE_KEY = 'cartella_powra_draft_v1';
+let saveDebounceTimer = null;
+function scheduleSave(){
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(saveDraft, 400);
+}
+function val(id){ const el = document.getElementById(id); return el ? el.value : ''; }
+
+function collectState(){
+  const hazards = [];
+  document.querySelectorAll('#hazardContainer .entry-item').forEach(el => {
+    const m = el.id.match(/hazard-(\d+)/); const i = m ? m[1] : null;
+    hazards.push({
+      name: val('hazardName-' + i),
+      control: val('hazardControl-' + i),
+      risk: getRadio('rowRisk-' + i)
+    });
+  });
+
+  const workers = [];
+  document.querySelectorAll('#workerContainer .worker-row').forEach(el => {
+    const m = el.id.match(/worker-(\d+)/); const i = m ? m[1] : null;
+    const pad = i ? workerPads[i] : null;
+    workers.push({
+      name: val('workerName-' + i),
+      sig: pad && !pad.isEmpty() ? pad.toData() : null
+    });
+  });
+
+  return {
+    project: val('projectName'),
+    worker: val('workerName'),
+    date: val('powraDate'),
+    time: val('powraTime'),
+    task: val('task'),
+    location: val('location'),
+    checks: getChecked('check'),
+    isolation: getRadio('isolation'),
+    isolationDetails: val('isolationDetails'),
+    swmsReq: getRadio('swmsReq'),
+    swmsRef: val('swmsRef'),
+    hazardTypes: getChecked('hazardType'),
+    hazards,
+    overallRisk: getRadio('overallRisk'),
+    proceed: getRadio('proceed'),
+    actionNeeded: val('actionNeeded'),
+    mainSig: mainPad && !mainPad.isEmpty() ? mainPad.toData() : null,
+    workers
+  };
+}
+
+function saveDraft(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState())); }catch(err){}
+}
+function loadDraft(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }catch(err){ return null; }
+}
+function clearSavedDraft(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(err){} }
+function setVal(id, v){ const el = document.getElementById(id); if (el) el.value = v || ''; }
+
+function restoreFromDraft(draft){
+  setVal('projectName', draft.project);
+  setVal('workerName', draft.worker);   // note: 'workerName' is the main author field
+  setVal('powraDate', draft.date);
+  setVal('powraTime', draft.time);
+  setVal('task', draft.task);
+  setVal('location', draft.location);
+  setChecked('check', draft.checks);
+  setRadio('isolation', draft.isolation);
+  setVal('isolationDetails', draft.isolationDetails);
+  setRadio('swmsReq', draft.swmsReq);
+  setVal('swmsRef', draft.swmsRef);
+  setChecked('hazardType', draft.hazardTypes);
+  setRadio('overallRisk', draft.overallRisk);
+  setRadio('proceed', draft.proceed);
+  setVal('actionNeeded', draft.actionNeeded);
+
+  if(draft.mainSig && draft.mainSig.length){
+    mainPad.fromData(draft.mainSig);
+    document.getElementById('mainSigPlaceholder').style.display = 'none';
+  }
+
+  if(draft.hazards && draft.hazards.length){ draft.hazards.forEach(h => addHazardRow(h)); }
+  else{ addHazardRow(); }
+
+  if(draft.workers && draft.workers.length){ draft.workers.forEach(w => addWorkerRow(w)); }
+}
+
+/* ============ SETUP ============ */
+setupMainSig();
+
+const existingDraft = loadDraft();
+if(existingDraft){
+  restoreFromDraft(existingDraft);
+  showBanner('Restored your unsaved draft from last time.', 'info');
+}else{
+  addHazardRow();
+}
+
+/* attach save listeners */
+['projectName','workerName','powraTime','task','location','isolationDetails','swmsRef','actionNeeded'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', scheduleSave);
+});
+['powraDate'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', scheduleSave);
+});
+document.querySelectorAll('input[name="check"],input[name="isolation"],input[name="swmsReq"],input[name="hazardType"],input[name="overallRisk"],input[name="proceed"]')
+  .forEach(el => el.addEventListener('change', scheduleSave));
+
+/* keep the download/print filename in sync with project + date */
+document.getElementById('projectName').addEventListener('input', updateDocTitle);
+document.getElementById('powraDate').addEventListener('change', updateDocTitle);
+updateDocTitle();
+
+/* ============ VALIDATION ============ */
+function clearErrors(){
+  document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+}
+function setError(wrapperId){
+  const el = document.getElementById(wrapperId);
+  if (el) el.classList.add('field-error');
+}
+function validate(){
+  clearErrors();
+  let firstBadEl = null;
+
+  const checks = [
+    ['projectName', 'f-project'],
+    ['workerName', 'f-worker'],
+    ['powraDate', 'f-date'],
+    ['task', 'f-task']
+  ];
+  checks.forEach(([fieldId, wrapId]) => {
+    const v = (val(fieldId) || '').trim();
+    if (!v){ setError(wrapId); firstBadEl = firstBadEl || document.getElementById(fieldId); }
+  });
+
+  if (!getRadio('proceed')){
+    setError('f-proceed');
+    firstBadEl = firstBadEl || document.getElementById('proceedGroup');
+  }
+  if (mainPad.isEmpty()){
+    setError('f-sig');
+    firstBadEl = firstBadEl || document.getElementById('mainSigBox');
+  }
+
+  if (firstBadEl){
+    firstBadEl.scrollIntoView({ behavior:'smooth', block:'center' });
+    if (firstBadEl.focus) firstBadEl.focus();
+    return false;
+  }
+  return true;
+}
+
+/* ============ STATUS BANNER ============ */
+function showBanner(msg, type){
+  const b = document.getElementById('statusBanner');
+  b.textContent = msg;
+  b.className = 'status-banner show ' + type;
+  if (type !== 'saving'){ setTimeout(() => { b.classList.remove('show'); }, 4000); }
+}
+function showOverlay(msg){
+  document.getElementById('overlayText').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay(){ document.getElementById('overlay').classList.remove('show'); }
+
+/* ============ FILENAME HELPERS ============ */
+function sanitize(str){
+  return (str || '').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+}
+function formatDateForFilename(isoDate){
+  if (!isoDate) return '';
+  const [y,m,d] = isoDate.split('-');
+  return `${d}-${m}-${y}`;
+}
+function formatDateForDisplay(isoDate){
+  if (!isoDate) return '';
+  const [y,m,d] = isoDate.split('-');
+  return `${d}/${m}/${y}`;
+}
+/* The browser's "Save as PDF" dialog uses the page title as the default filename. */
+function updateDocTitle(){
+  const project = (document.getElementById('projectName')?.value || '').trim();
+  const dateStr = formatDateForFilename(document.getElementById('powraDate')?.value || '');
+  let t = 'Point of Work Risk Assessment';
+  if (project) t += ' - ' + project;
+  if (dateStr) t += ' - ' + dateStr;
+  document.title = t;
+}
+
+/* ============ PDF GENERATION ============ */
+async function generatePdfBase64(){
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+
+  const project = val('projectName').trim();
+  const dateIso = val('powraDate');
+  const dateDisp = formatDateForDisplay(dateIso) || dateIso;
+  const titleText = project
+    ? `Point of Work Risk Assessment — ${project} — ${dateDisp}`
+    : `Point of Work Risk Assessment — ${dateDisp}`;
+  pdf.setProperties({ title: titleText });
+
+  const pageW = 210, pageH = 297, margin = 15;
+  const contentW = pageW - margin * 2;
+  let y = margin;
+
+  const RED = [216,35,42], INK = [26,26,26], MUTED = [85,85,85], LINE = [230,230,230];
+  const logoDataUrl = document.getElementById('brandLogo')?.src || null;
+
+  function addHeader(){
+    pdf.setFillColor(26,26,26);
+    pdf.rect(0, 0, pageW, 24, 'F');
+    if(logoDataUrl){ try{ pdf.addImage(logoDataUrl, 'PNG', margin, 5, 34, 8.8); }catch(e){} }
+    pdf.setTextColor(255,255,255);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(8);
+    pdf.text('p 1300 973 287', pageW - margin, 8, { align:'right' });
+    pdf.text('a PO Box 1076, Lutwyche, QLD 4030', pageW - margin, 12, { align:'right' });
+    pdf.text('e info@cartella.com.au', pageW - margin, 16, { align:'right' });
+    pdf.text('w www.cartella.com.au', pageW - margin, 20, { align:'right' });
+
+    pdf.setFillColor(RED[0],RED[1],RED[2]);
+    pdf.rect(0, 24, pageW, 9, 'F');
+    pdf.setTextColor(255,255,255);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(12);
+    pdf.text('Point of Work Risk Assessment', margin, 30.5);
+
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+    y = 40;
+  }
+  function addFooter(pageNum, totalPages){
+    pdf.setDrawColor(RED[0],RED[1],RED[2]);
+    pdf.setLineWidth(0.6);
+    pdf.line(margin, pageH - 12, pageW - margin, pageH - 12);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    pdf.text('Cartella Services Pty Ltd — Point of Work Risk Assessment', margin, pageH - 7);
+    pdf.text('Page ' + pageNum + ' of ' + totalPages, pageW - margin, pageH - 7, { align:'right' });
+  }
+  function checkBreak(needed){
+    if(y + needed > pageH - 16){ pdf.addPage(); addHeader(); return true; }
+    return false;
+  }
+  function sectionTitle(text){
+    checkBreak(12);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(10.5);
+    pdf.setTextColor(RED[0],RED[1],RED[2]);
+    pdf.text(text.toUpperCase(), margin, y);
+    pdf.setDrawColor(RED[0],RED[1],RED[2]);
+    pdf.setLineWidth(0.5);
+    pdf.line(margin, y + 1.5, pageW - margin, y + 1.5);
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+    y += 8;
+  }
+  function wrapAndPrint(text, x, maxWidth, size, italic){
+    if(!text) return;
+    pdf.setFont('helvetica', italic ? 'italic' : 'normal');
+    pdf.setFontSize(size);
+    const lines = pdf.splitTextToSize(text, maxWidth);
+    lines.forEach(line => { checkBreak(5.5); pdf.text(line, x, y); y += 5.2; });
+  }
+  function labelValue(label, value){
+    checkBreak(7);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(9.5);
+    pdf.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    pdf.text(label.toUpperCase(), margin, y);
+    y += 4.5;
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(11);
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+    const lines = pdf.splitTextToSize(value || '—', contentW);
+    lines.forEach(line => { checkBreak(5.5); pdf.text(line, margin, y); y += 5.2; });
+    y += 2.5;
+  }
+  function labelBlock(label, value){
+    checkBreak(7);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(9.5);
+    pdf.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+    pdf.text(label.toUpperCase(), margin, y);
+    y += 4.8;
+    wrapAndPrint(value && value.trim() ? value : '—', margin, contentW, 10.5, !(value && value.trim()));
+    y += 3;
+  }
+  function divider(){
+    pdf.setDrawColor(LINE[0],LINE[1],LINE[2]);
+    pdf.setLineWidth(0.3);
+    checkBreak(4);
+    pdf.line(margin, y - 1, pageW - margin, y - 1);
+    y += 4;
+  }
+  function isPadEmpty(pad){ try{ return !pad || pad.isEmpty(); }catch(e){ return true; } }
+
+  // ===== PAGE 1 =====
+  addHeader();
+
+  // TASK DETAILS
+  sectionTitle('Task details');
+  labelValue('Project / site name', project);
+  labelValue('Assessed by', val('workerName').trim());
+  labelValue('Date', dateDisp);
+  labelValue('Time', val('powraTime'));
+  labelBlock('Task / activity', val('task'));
+  labelValue('Exact location', val('location').trim());
+
+  // BEFORE YOU START
+  sectionTitle('Before you start — Take 5');
+  const confirmed = getChecked('check');
+  const notConfirmed = CHECK_ITEMS.filter(c => !confirmed.includes(c));
+  labelValue('Confirmed', confirmed.length ? confirmed.join('; ') : 'None ticked');
+  if(notConfirmed.length){
+    pdf.setTextColor(RED[0],RED[1],RED[2]);
+    labelValue('NOT confirmed — attention', notConfirmed.join('; '));
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+  }
+  labelValue('Electrical isolation required?', getRadio('isolation'));
+  if(val('isolationDetails').trim()) labelValue('Isolation details / permit no.', val('isolationDetails').trim());
+  labelValue('SWMS / permit required?', getRadio('swmsReq'));
+  if(val('swmsRef').trim()) labelValue('SWMS / permit reference', val('swmsRef').trim());
+
+  // HAZARDS & CONTROLS
+  sectionTitle('Hazards & controls');
+  labelValue('Hazards present', getChecked('hazardType').join(', '));
+  let anyHazard = false;
+  document.querySelectorAll('#hazardContainer .entry-item').forEach((el, idx) => {
+    const m = el.id.match(/hazard-(\d+)/); const i = m ? m[1] : null;
+    const name = val('hazardName-' + i).trim();
+    const control = val('hazardControl-' + i).trim();
+    const risk = getRadio('rowRisk-' + i);
+    if(!name && !control && !risk) return;
+    anyHazard = true;
+    checkBreak(10);
+    pdf.setFont('helvetica','bold');
+    pdf.setFontSize(10);
+    pdf.setTextColor(RED[0],RED[1],RED[2]);
+    pdf.text('HAZARD ' + (idx + 1) + (risk ? '   —   residual risk: ' + risk : ''), margin, y);
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+    y += 5.5;
+    wrapAndPrint(name || '(hazard not entered)', margin, contentW, 10.5, !name);
+    wrapAndPrint('Control: ' + (control || '(none entered)'), margin, contentW, 9.5, !control);
+    y += 2;
+    divider();
+  });
+  if(!anyHazard){ wrapAndPrint('No specific hazards recorded.', margin, contentW, 9.5, true); y += 4; }
+
+  // ASSESSMENT OUTCOME
+  sectionTitle('Assessment outcome');
+  labelValue('Overall residual risk', getRadio('overallRisk'));
+  labelValue('Safe to proceed?', getRadio('proceed'));
+  labelBlock('Action needed before starting', val('actionNeeded'));
+
+  // SIGN-OFF
+  sectionTitle('Sign-off');
+  checkBreak(24);
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(9.5);
+  pdf.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+  pdf.text('ASSESSED BY', margin, y);
+  y += 3;
+  if(!isPadEmpty(mainPad)){
+    try{ pdf.addImage(mainPad.toDataURL('image/png'), 'PNG', margin, y, 50, 14); }catch(e){}
+    y += 16;
+  }else{
+    pdf.setFont('helvetica','italic'); pdf.setFontSize(9.5);
+    pdf.text('(not signed)', margin, y + 4); y += 10;
+  }
+  pdf.setTextColor(INK[0],INK[1],INK[2]);
+  wrapAndPrint(val('workerName').trim(), margin, contentW, 10.5, false);
+  y += 4;
+
+  // OTHERS ON TASK
+  let anyWorker = false;
+  document.querySelectorAll('#workerContainer .worker-row').forEach(row => {
+    const m = row.id.match(/worker-(\d+)/); const i = m ? m[1] : null;
+    const name = val('workerName-' + i).trim();
+    const pad = i ? workerPads[i] : null;
+    const hasSig = !isPadEmpty(pad);
+    if(!name && !hasSig) return;
+    if(!anyWorker){ sectionTitle('Others on this task'); anyWorker = true; }
+    checkBreak(13);
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(INK[0],INK[1],INK[2]);
+    pdf.text(name || '(name not entered)', margin, y + 3);
+    if(hasSig){
+      try{ pdf.addImage(pad.toDataURL('image/png'), 'PNG', margin + 90, y - 3, 42, 10); }catch(e){}
+    }else{
+      pdf.setFont('helvetica','italic'); pdf.setFontSize(8.5);
+      pdf.setTextColor(MUTED[0],MUTED[1],MUTED[2]);
+      pdf.text('(not signed)', margin + 90, y + 3);
+      pdf.setTextColor(INK[0],INK[1],INK[2]);
+    }
+    y += 7;
+    divider();
+  });
+
+  const totalPages = pdf.internal.getNumberOfPages();
+  for(let p = 1; p <= totalPages; p++){ pdf.setPage(p); addFooter(p, totalPages); }
+
+  const dataUri = pdf.output('datauristring');
+  return dataUri.split(',')[1];
+}
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('Clear the whole form and start again? This will also delete your saved draft.')){
+    clearSavedDraft();
+    window.location.reload();
+  }
+});
+
+/* ============ SUBMIT ============ */
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  if (!validate()) return;
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  showOverlay('Generating PDF...');
+
+  try {
+    const project = sanitize(val('projectName'));
+    const dateStr = formatDateForFilename(val('powraDate'));
+    const worker = sanitize(val('workerName')) || 'Unnamed';
+    const filename = `POWRA_${project}_${dateStr}_${worker}.pdf`;
+    const pdfBase64 = await generatePdfBase64();
+
+    showOverlay('Saving to Drive...');
+    await submitViaHiddenForm(filename, pdfBase64);
+    hideOverlay();
+    showBanner('Risk assessment saved successfully.', 'success');
+    clearSavedDraft();
+    setTimeout(() => { window.location.reload(); }, 2000);
+  } catch (err){
+    hideOverlay();
+    showBanner('Error saving: ' + err.message, 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+function submitViaHiddenForm(filename, pdfBase64){
+  return new Promise((resolve, reject) => {
+    try {
+      let iframe = document.querySelector('iframe[name="upload-target"]');
+      if (!iframe){
+        iframe = document.createElement('iframe');
+        iframe.name = 'upload-target';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SCRIPT_URL;
+      form.target = 'upload-target';
+      form.style.display = 'none';
+
+      const fFilename = document.createElement('input');
+      fFilename.name = 'filename';
+      fFilename.value = filename;
+      form.appendChild(fFilename);
+
+      const fPdf = document.createElement('input');
+      fPdf.name = 'pdfBase64';
+      fPdf.value = pdfBase64;
+      form.appendChild(fPdf);
+
+      document.body.appendChild(form);
+      const onLoad = () => { iframe.removeEventListener('load', onLoad); form.remove(); resolve(); };
+      iframe.addEventListener('load', onLoad);
+      form.submit();
+      setTimeout(() => { iframe.removeEventListener('load', onLoad); resolve(); }, 15000);
+    } catch (err){ reject(err); }
+  });
+}
+</script>
+
+</body>
+</html>
