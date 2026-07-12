@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electrical Installation Test Sheet - Cartella</title>
+<style>
+  :root{
+    --red:#D8232A;
+    --red-dark:#a91a20;
+    --ink:#1c1c1c;
+    --black:#1a1a1a;
+    --gray-line:#cfcfcf;
+    --gray-bg:#f5f5f5;
+    --gray-text:#555;
+    --pass:#1e8e3e;
+    --pass-bg:#e8f5ec;
+    --fail:var(--red);
+    --fail-bg:#fff5f5;
+    --warn:#b8790e;
+    --warn-bg:#fff8e8;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:var(--sans); background:var(--gray-bg); color:var(--black);
+    font-size:14px; line-height:1.45; padding-bottom:40px;
+  }
+  .wrap{max-width:1320px; margin:0 auto; padding:16px;}
+
+  /* ---------- BRAND HEADER ---------- */
+  header.brand{
+    background:var(--ink); color:#fff; padding:22px 24px 20px;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+  }
+  header.brand .logo{height:46px; width:auto; display:block;}
+  header.brand .sub{font-size:11px; letter-spacing:3px; color:#cfcfcf; margin-top:2px;}
+  header.brand .contact{font-size:11px; line-height:1.7; color:#d8d8d8; text-align:right;}
+  @media (max-width:600px){
+    header.brand{flex-direction:column;}
+    header.brand .contact{text-align:left;}
+  }
+  .titlebar{
+    background:var(--red); color:#fff; padding:12px 24px; font-size:17px; font-weight:600; letter-spacing:0.3px;
+    display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .titlebar .std-ref{font-size:11.5px; font-weight:600; letter-spacing:0.4px; color:#ffe3e4;}
+
+  /* ---------- STAT STRIP ---------- */
+  .stat-strip{display:flex; gap:10px; padding:14px 16px 0; flex-wrap:wrap;}
+  .stat-strip .cell{
+    background:#fff; border:1px solid #e8e8e8; border-radius:8px; padding:9px 16px; min-width:84px;
+    text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .stat-strip .cell .n{font-size:20px; font-weight:700; display:block; color:var(--ink);}
+  .stat-strip .cell .l{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-text);}
+  .stat-strip .cell.pass .n{color:var(--pass);}
+  .stat-strip .cell.fail .n{color:var(--fail);}
+  .stat-strip .cell.warn .n{color:var(--warn);}
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:#fff; border-radius:10px; padding:18px; margin:14px 0;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); border:1px solid #e8e8e8;
+  }
+  .section-title{
+    color:var(--red); font-weight:700; font-size:13px; letter-spacing:0.5px; text-transform:uppercase;
+    margin:0 0 12px 0; border-bottom:2px solid var(--red); padding-bottom:6px;
+  }
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px 16px;}
+  .photo-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px;}
+  .photo-slot label{
+    display:block; font-size:13px; font-weight:600; color:#333; margin-bottom:6px;
+  }
+  .photo-box{
+    position:relative; border:1.5px dashed #ccc; border-radius:8px; background:#fafafa;
+    aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; overflow:hidden;
+    cursor:pointer;
+  }
+  .photo-box:hover{border-color:var(--red);}
+  .photo-box input.photo-input{
+    position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer;
+  }
+  .photo-placeholder{color:#999; font-size:13px; text-align:center; padding:10px; pointer-events:none;}
+  .photo-preview{
+    width:100%; height:100%; object-fit:cover; display:none; pointer-events:none;
+  }
+  .photo-box.has-photo .photo-placeholder{display:none;}
+  .photo-box.has-photo .photo-preview{display:block;}
+  .photo-remove{
+    position:absolute; top:6px; right:6px; background:rgba(0,0,0,.62); color:#fff; border:none;
+    border-radius:5px; padding:4px 9px; font-size:11px; font-weight:600; cursor:pointer; display:none;
+  }
+  .photo-box.has-photo .photo-remove{display:block;}
+  .section-header{
+    display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+    margin-bottom:12px; border-bottom:2px solid var(--red); padding-bottom:6px;
+  }
+  .section-header .section-title{margin:0; border:none; padding:0;}
+  .section-toggle{
+    display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; color:var(--gray-text);
+    cursor:pointer; white-space:nowrap;
+  }
+  .section-toggle input[type=checkbox]{width:16px; height:16px; accent-color:var(--red); cursor:pointer;}
+  .excluded-note{display:none;}
+  .photo-remove:hover{background:var(--red);}
+
+  .section-subtitle{font-size:12px; color:var(--gray-text); margin:-8px 0 14px; font-weight:500;}
+
+  #riskTable, #inspectionTable{border-collapse:collapse; width:100%;}
+  #riskTable thead th, #inspectionTable thead th{
+    background:var(--gray-bg); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--gray-text); font-weight:700; text-align:left; padding:10px 9px;
+    border-bottom:2px solid var(--red);
+  }
+  #riskTable tbody td, #inspectionTable tbody td{padding:6px 9px; border-bottom:1px solid #eee; vertical-align:middle;}
+  #riskTable tbody tr:hover, #inspectionTable tbody tr:hover{background:#fafafa;}
+  #riskTable input, #riskTable select, #inspectionTable input, #inspectionTable select{
+    width:100%; height:38px; padding:0 10px; border:1px solid #ccc; border-radius:6px;
+    font-family:inherit; font-size:13px; background:#fff; color:var(--black); box-sizing:border-box;
+  }
+  #riskTable select, #inspectionTable select{
+    -webkit-appearance:none; -moz-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat; background-position:right 9px center; background-size:13px;
+    padding-right:28px; cursor:pointer;
+  }
+  #riskTable input:focus, #riskTable select:focus, #inspectionTable input:focus, #inspectionTable select:focus{
+    outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(216,35,42,0.12);
+  }
+  select.f-risk{font-weight:700;}
+  select.f-risk[data-level="low"]{color:var(--pass);}
+  select.f-risk[data-level="medium"]{color:var(--warn);}
+  select.f-risk[data-level="high"]{color:var(--fail);}
+  .inspection-ok{
+    display:flex; align-items:center; justify-content:center;
+  }
+  .inspection-ok input[type=checkbox]{width:19px; height:19px; accent-color:var(--pass); cursor:pointer;}
+
+  .ppe-checks{display:flex; flex-wrap:wrap; gap:10px 18px;}
+  .ppe-checks label{
+    display:flex; align-items:center; gap:6px; font-size:13.5px; font-weight:500; color:#333; cursor:pointer;
+  }
+  .ppe-checks input[type=checkbox]{width:16px; height:16px; accent-color:var(--red); cursor:pointer;}
+  .ra-confirm{
+    display:flex; align-items:flex-start; gap:8px; font-size:13.5px; font-weight:600; color:var(--black); cursor:pointer;
+  }
+  .ra-confirm input[type=checkbox]{width:17px; height:17px; margin-top:1px; accent-color:var(--red); cursor:pointer; flex-shrink:0;}
+  .field label{
+    display:block; font-size:13px; font-weight:600; color:#333; margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%; padding:10px 12px; font-size:15px; border:1px solid #ccc; border-radius:7px;
+    font-family:inherit; background:#fff; color:var(--black);
+  }
+  .field input:focus, .field select:focus{
+    outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(216,35,42,0.12);
+  }
+
+  /* ---------- TABLE ---------- */
+  .table-scroll{overflow-x:auto; border:1px solid #e8e8e8; border-radius:10px; background:#fff;}
+  table{border-collapse:collapse; width:100%; min-width:1560px;}
+  thead th{
+    background:var(--gray-bg); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--gray-text); font-weight:700; text-align:left; padding:10px 9px;
+    border-bottom:2px solid var(--red); white-space:nowrap; position:sticky; top:0;
+  }
+  tbody td{padding:6px 9px; border-bottom:1px solid #eee; vertical-align:middle;}
+  tbody tr.circuit-row:hover{background:#fafafa;}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  input[type=number]{
+    -moz-appearance:textfield; appearance:textfield;
+  }
+
+  td input{
+    width:100%; min-width:64px; padding:7px 8px; border:1px solid #ccc; border-radius:6px;
+    font-family:inherit; font-size:16px; background:#fff; color:var(--black);
+  }
+  td select{
+    width:auto; max-width:none; min-width:64px; padding:7px 8px; border:1px solid #ccc; border-radius:6px;
+    font-family:inherit; font-size:16px; background:#fff; color:var(--black); white-space:nowrap;
+  }
+  td input:focus, td select:focus{
+    outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(216,35,42,0.12);
+  }
+  td.desc input{min-width:130px;}
+  td.id input{min-width:52px; font-weight:600;}
+  .ir-group{display:flex; gap:3px;}
+  .ir-group input{width:72px !important; min-width:0 !important; padding:6px 4px; font-size:16px; text-align:center;}
+  .ir-group input.ir-hidden{display:none;}
+  .badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700;
+    padding:5px 10px; border-radius:20px; white-space:nowrap; letter-spacing:.02em;
+    cursor:pointer; border:1px solid transparent;
+  }
+  .badge.pending{background:var(--gray-bg); color:var(--gray-text); border-color:#e2e2e2;}
+  .badge.pass{background:var(--pass-bg); color:var(--pass); border-color:#c3e8cf;}
+  .badge.fail{background:var(--fail-bg); color:var(--fail); border-color:#f3c3c5;}
+  .badge.warn{background:var(--warn-bg); color:var(--warn); border-color:#f0dca3;}
+  .badge .dot{width:6px; height:6px; border-radius:50%; background:currentColor;}
+  .del-btn{
+    background:none; border:none; color:#aaa; cursor:pointer; font-size:16px; padding:2px 6px;
+    border-radius:5px; line-height:1;
+  }
+  .del-btn:hover{color:var(--fail); background:var(--fail-bg);}
+
+  tr.detail-row td{
+    background:var(--gray-bg); font-size:12.5px; color:var(--gray-text); padding:12px 18px;
+    border-bottom:1px solid #e8e8e8;
+  }
+  tr.detail-row .detail-grid{display:flex; flex-wrap:wrap; gap:22px;}
+  tr.detail-row .dg-item b{display:block; color:var(--black); font-size:12.5px; margin-bottom:2px; font-weight:700;}
+  tr.detail-row.hidden{display:none;}
+  .note-fail{color:var(--fail); font-weight:700;}
+  .note-warn{color:var(--warn); font-weight:700;}
+  .note-pass{color:var(--pass); font-weight:700;}
+
+  /* ---------- ACTIONS ---------- */
+  .actions{display:flex; gap:10px; align-items:center; margin:16px 0 4px; flex-wrap:wrap;}
+  .save-status{font-size:12.5px; color:var(--gray-text); margin-left:2px;}
+  .save-status.warn{color:var(--warn); font-weight:600;}
+  button.btn{
+    font-family:inherit; font-weight:700; font-size:13.5px; padding:11px 20px;
+    border-radius:8px; border:1px solid #ccc; background:#fff; color:#333; cursor:pointer;
+  }
+  button.btn:hover{border-color:var(--red); color:var(--red);}
+  button.btn.primary{
+    background:#fff; border:1.5px dashed var(--red); color:var(--red);
+  }
+  button.btn.primary:hover{background:#fff0f0;}
+  button.btn.primary:active{background:#fff0f0;}
+
+  /* ---------- FOOTER / LEGEND ---------- */
+  footer.legend{margin-top:14px;}
+  footer.legend p{margin:0 0 8px; color:var(--gray-text);}
+  footer.legend p:last-of-type{margin-bottom:0;}
+  footer.legend b{color:var(--black);}
+  .disclaimer{
+    margin-top:14px; font-size:11.5px; color:var(--gray-text); border-left:3px solid var(--warn);
+    padding:8px 14px; background:var(--warn-bg); border-radius:0 6px 6px 0;
+  }
+  .foot-note{text-align:center; font-size:11px; color:#999; margin-top:16px;}
+
+  @page{ size: A3 landscape; margin:10mm; }
+  @media print{
+    body{background:#fff; font-size:10px;}
+    .wrap{max-width:100%; padding:0;}
+    .actions, .del-btn{display:none;}
+    #saveSubmitCard{display:none !important;}
+    .card.section-excluded{padding-bottom:10px;}
+    .card.section-excluded .excluded-note{display:block; font-size:9px; color:#777; font-style:italic; margin:0;}
+    .section-toggle{display:none;}
+    .photo-remove, .photo-input{display:none !important;}
+    #photosCard{page-break-before:always !important; break-before:page !important;}
+    #inspectionCard{page-break-before:always !important; break-before:page !important;}
+    .photo-box{aspect-ratio:auto; height:85mm; border:1px solid #999; background:#f2f2f2;}
+    .photo-box:not(.has-photo){display:none;}
+    .photo-grid{gap:10px; grid-template-columns:repeat(3,1fr);}
+    .photo-preview{object-fit:contain !important;}
+    .photo-slot label{font-size:10px;}
+
+    header.brand{
+      background:var(--ink) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      padding:10px 14px;
+    }
+    header.brand .logo{height:32px;}
+    header.brand .sub{font-size:9px; letter-spacing:2px;}
+    header.brand .contact{font-size:9px; line-height:1.5;}
+
+    .titlebar{
+      background:var(--red) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      padding:7px 14px; font-size:13px;
+    }
+    .titlebar .std-ref{font-size:10px;}
+
+    .stat-strip{padding:8px 14px 0; gap:8px;}
+    .stat-strip .cell{padding:5px 10px; min-width:0; box-shadow:none;}
+    .stat-strip .cell .n{font-size:14px;}
+    .stat-strip .cell .l{font-size:8px;}
+
+    .card{padding:10px 12px; margin:8px 0; box-shadow:none; border:1px solid #999; page-break-inside:avoid;}
+    /* Cards containing potentially long tables need to be able to break across pages —
+       "avoid" here would either overflow or force the whole card onto its own page instead
+       of paginating the table properly. */
+    #circuitCard, #submainCard, #riskCard, #inspectionCard{page-break-inside:auto; break-inside:auto;}
+    .section-title{font-size:11px; margin-bottom:8px; padding-bottom:4px;}
+    .grid{grid-template-columns:repeat(6,1fr); gap:6px 10px;}
+    .field label{font-size:8.5px; margin-bottom:3px;}
+    .field input, .field select{padding:4px 6px; font-size:9.5px; border-color:#bbb;}
+
+    .table-scroll{overflow:visible; border:1px solid #999;}
+    table{min-width:0; width:100%; table-layout:fixed; page-break-inside:auto; break-inside:auto; border-collapse:collapse;}
+    /* Repeat the header row at the top of every new page the table spans, and keep each
+       data row intact rather than letting a page break slice through the middle of one. */
+    thead{display:table-header-group;}
+    tbody{display:table-row-group;}
+    tbody tr{page-break-inside:avoid; break-inside:avoid;}
+    thead th{
+      white-space:normal; font-size:8px; padding:4px 3px; position:static;
+      background:#eee !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      border-bottom:1.5px solid var(--red);
+    }
+    tbody td{padding:3px 3px;}
+    td input, td select{
+      padding:2px 3px; font-size:8.5px; min-width:0; border-color:#bbb;
+    }
+    td select{
+      width:100%; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    td.desc input{min-width:0;}
+    td.id input{min-width:0;}
+    .ir-group{gap:1.5px;}
+    .ir-group input{width:24px !important; padding:2px 1px !important; font-size:7.5px !important;}
+    .badge{font-size:7.5px; padding:2px 6px; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .badge .dot{width:5px; height:5px;}
+
+    /* hide the delete-row column entirely when printing */
+    table thead th:last-child, table tbody td:last-child{display:none;}
+    /* detail/working rows are for on-screen review only */
+    tr.detail-row{display:none !important;}
+
+    footer.legend{font-size:9px;}
+    footer.legend p{margin-bottom:4px;}
+    .disclaimer{font-size:8px; padding:6px 8px;}
+    .foot-note{font-size:8px; margin-top:8px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="brand">
+  <div>
+    <img src="data:image/webp;base64,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" alt="Cartella Electrical" class="logo">
+  </div>
+  <div class="contact">
+    p&nbsp; 1300 973 287<br>
+    a&nbsp; PO Box 1076, Lutwyche, QLD 4030<br>
+    e&nbsp; info@cartella.com.au<br>
+    w&nbsp; www.cartella.com.au
+  </div>
+</header>
+<div class="titlebar">
+  <span>Electrical Installation Test Sheet</span>
+  <span class="std-ref">AS/NZS 3000:2018 &sect;8</span>
+</div>
+<div class="stat-strip">
+  <div class="cell"><span class="n" id="mTotal">0</span><span class="l">Circuits</span></div>
+  <div class="cell pass"><span class="n" id="mPass">0</span><span class="l">Pass</span></div>
+  <div class="cell fail"><span class="n" id="mFail">0</span><span class="l">Fail</span></div>
+  <div class="cell warn"><span class="n" id="mWarn">0</span><span class="l">Check</span></div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <p class="section-title">Installation &amp; Instrument Details</p>
+    <div class="grid">
+      <div class="field"><label>Client / Site</label><input id="site" placeholder="e.g. 12 Wattle St, Brisbane"></div>
+      <div class="field"><label>Installation description</label><input id="descJob" placeholder="e.g. New sub-board + 6 circuits"></div>
+      <div class="field"><label>Test date</label><input id="testDate" type="date"></div>
+      <div class="field"><label>Tester name</label><input id="tester" placeholder="Full name"></div>
+      <div class="field"><label>Licence no.</label><input id="licence" placeholder="e.g. 123456"></div>
+      <div class="field"><label>Test instrument</label><input id="instrument" placeholder="Make / model"></div>
+      <div class="field"><label>Instrument serial no.</label><input id="serial" placeholder="Serial"></div>
+      <div class="field"><label>Calibration due</label><input id="calDue" type="date"></div>
+    </div>
+  </div>
+
+  <div class="card" id="riskCard">
+    <p class="section-title">Risk Assessment &mdash; Electrical Testing</p>
+    <div class="table-scroll">
+      <table id="riskTable">
+        <colgroup>
+          <col style="width:30%"><col style="width:10%"><col style="width:57%"><col style="width:3%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Hazard</th>
+            <th>Risk</th>
+            <th>Control measures</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="riskTbody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="addRiskBtn">+ Add hazard</button>
+    </div>
+
+    <div class="grid" style="margin-top:18px;">
+      <div class="field" style="grid-column:1/-1;">
+        <label>PPE required</label>
+        <div class="ppe-checks">
+          <label><input type="checkbox" class="ppe-check" value="Insulated gloves"> Insulated gloves</label>
+          <label><input type="checkbox" class="ppe-check" value="Safety glasses"> Safety glasses</label>
+          <label><input type="checkbox" class="ppe-check" value="Arc-rated clothing"> Arc-rated clothing</label>
+          <label><input type="checkbox" class="ppe-check" value="Insulated tools"> Insulated tools</label>
+          <label><input type="checkbox" class="ppe-check" value="Safety footwear"> Safety footwear</label>
+          <label><input type="checkbox" class="ppe-check" value="Hi-vis clothing"> Hi-vis clothing</label>
+        </div>
+      </div>
+      <div class="field"><label>Risk assessment conducted by</label><input id="raAssessor" placeholder="Full name"></div>
+      <div class="field"><label>Date</label><input id="raDate" type="date"></div>
+      <div class="field" style="grid-column:1/-1;">
+        <label class="ra-confirm"><input type="checkbox" id="raSafeProceed"> I confirm the risks above have been assessed and controlled, and it is safe to proceed with testing.</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="inspectionCard">
+    <p class="section-title">Visual Inspection</p>
+    <p class="section-subtitle">Complete before testing begins &mdash; AS/NZS 3000 Clause 8.2</p>
+    <div class="table-scroll">
+      <table id="inspectionTable">
+        <colgroup>
+          <col style="width:48%"><col style="width:6%"><col style="width:43%"><col style="width:3%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>OK</th>
+            <th>Comments / defects noted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="inspectionTbody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="addInspectionBtn">+ Add item</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding-bottom:8px;" id="submainCard">
+    <div class="section-header">
+      <p class="section-title">Submain Test Results</p>
+      <label class="section-toggle"><input type="checkbox" id="submainInclude" checked> Required for this job</label>
+    </div>
+    <p class="excluded-note">Submain testing was marked not required for this job.</p>
+    <div id="submainBody">
+      <div class="table-scroll">
+        <table id="submainTable">
+          <colgroup>
+            <col style="width:3%"><col style="width:8%"><col style="width:4%"><col style="width:4%">
+            <col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:5%">
+            <col style="width:4%"><col style="width:6%"><col style="width:10%">
+            <col style="width:6%"><col style="width:6%"><col style="width:5%"><col style="width:6%"><col style="width:6%">
+            <col style="width:4%"><col style="width:4%"><col style="width:6%"><col style="width:1%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Submain</th>
+              <th>Description</th>
+              <th>Active csa (mm&sup2;)</th>
+              <th>Active sets</th>
+              <th>Earth csa (mm&sup2;)</th>
+              <th>Earth sets</th>
+              <th>Length (m)</th>
+              <th>Device</th>
+              <th>Rating (A)</th>
+              <th>Phase</th>
+              <th>Insul. R (M&Omega;) &mdash; L1 / L2 / L3 / N-E</th>
+              <th>Continuity</th>
+              <th class="th-cont">Ohms (&Omega;)</th>
+              <th>Zs (&Omega;)</th>
+              <th>Polarity</th>
+              <th>Phase sequence</th>
+              <th>RCD trip 1&times; (ms)</th>
+              <th>RCD trip 5&times; (ms)</th>
+              <th>Result</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="submainTbody"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="addSubmainRowBtn">+ Add submain</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding-bottom:8px;" id="circuitCard">
+    <div class="section-header">
+      <p class="section-title">Circuit Test Results</p>
+      <label class="section-toggle"><input type="checkbox" id="circuitInclude" checked> Required for this job</label>
+    </div>
+    <p class="excluded-note">Circuit testing was marked not required for this job.</p>
+    <div id="circuitBody">
+    <div class="table-scroll">
+      <table id="circuitTable">
+        <colgroup>
+          <col style="width:3%"><col style="width:8%"><col style="width:4%"><col style="width:4%">
+          <col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:5%">
+          <col style="width:4%"><col style="width:6%"><col style="width:10%">
+          <col style="width:6%"><col style="width:6%"><col style="width:5%"><col style="width:6%"><col style="width:6%">
+          <col style="width:4%"><col style="width:4%"><col style="width:6%"><col style="width:1%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Circuit</th>
+            <th>Description</th>
+            <th>Active csa (mm&sup2;)</th>
+            <th>Active sets</th>
+            <th>Earth csa (mm&sup2;)</th>
+            <th>Earth sets</th>
+            <th>Length (m)</th>
+            <th>Device</th>
+            <th>Rating (A)</th>
+            <th>Phase</th>
+            <th>Insul. R (M&Omega;) &mdash; L1 / L2 / L3 / N-E</th>
+            <th>Continuity</th>
+            <th class="th-cont">Ohms (&Omega;)</th>
+              <th>Zs (&Omega;)</th>
+            <th>Polarity</th>
+            <th>Phase sequence</th>
+            <th>RCD trip 1&times; (ms)</th>
+            <th>RCD trip 5&times; (ms)</th>
+            <th>Result</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="addRowBtn">+ Add circuit</button>
+    </div>
+    </div>
+  </div>
+
+  <div class="card" id="photosCard">
+    <p class="section-title">Switchboard Photos</p>
+    <div class="photo-grid">
+      <div class="photo-slot">
+        <label>Switchboard internals</label>
+        <div class="photo-box" id="photoBox-internals">
+          <input type="file" accept="image/*" capture="environment" id="photoInput-internals" class="photo-input">
+          <div class="photo-placeholder">+ Add photo</div>
+          <img class="photo-preview" alt="Switchboard internals">
+          <button type="button" class="photo-remove">Remove</button>
+        </div>
+      </div>
+      <div class="photo-slot">
+        <label>Switchboard escutcheon</label>
+        <div class="photo-box" id="photoBox-escutcheon">
+          <input type="file" accept="image/*" capture="environment" id="photoInput-escutcheon" class="photo-input">
+          <div class="photo-placeholder">+ Add photo</div>
+          <img class="photo-preview" alt="Switchboard escutcheon">
+          <button type="button" class="photo-remove">Remove</button>
+        </div>
+      </div>
+      <div class="photo-slot">
+        <label>Switchboard location</label>
+        <div class="photo-box" id="photoBox-location">
+          <input type="file" accept="image/*" capture="environment" id="photoInput-location" class="photo-input">
+          <div class="photo-placeholder">+ Add photo</div>
+          <img class="photo-preview" alt="Switchboard location">
+          <button type="button" class="photo-remove">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="saveSubmitCard">
+    <p class="section-title">Save &amp; Submit</p>
+    <div class="actions">
+      <button class="btn" id="printBtn">Print / Save PDF</button>
+      <button class="btn" id="csvBtn">Export CSV</button>
+      <button class="btn" id="saveJsonBtn">Save Progress</button>
+      <button class="btn" id="loadJsonBtn">Load Progress</button>
+      <input type="file" id="loadJsonInput" accept=".json,application/json" style="display:none">
+      <button class="btn" id="clearBtn">Clear saved data</button>
+      <span id="saveStatus" class="save-status"></span>
+    </div>
+  </div>
+
+  <p class="foot-note">Cartella Services Pty Ltd &mdash; Electrical Installation Test Sheet</p>
+</div>
+
+<script>
+// Merged device + RCD list. Each entry carries the protective-device curve (used for Zmax
+// only when no RCD is present) and the RCD residual current in mA (used for the 50V touch-voltage
+// Zmax rule when present). Curve type doesn't affect the Zmax calc once an RCD is present, so
+// generic "MCB + RCD" combos (e.g. a shared upstream safety switch) reuse the MCB-C curve entry.
+const DEVICE_OPTIONS = [
+  { value:'MCB-B',        label:'MCB B',                   dev:'MCB-B',   rcd:null },
+  { value:'MCB-C',        label:'MCB C',                   dev:'MCB-C',   rcd:null },
+  { value:'MCB-D',        label:'MCB D',                   dev:'MCB-D',   rcd:null },
+  { value:'MCCB',         label:'MCCB',                    dev:'MCCB',    rcd:null },
+  { value:'Fuse',         label:'Fuse gG',                 dev:'Fuse',    rcd:null },
+  { value:'RCBO-B-10',    label:'RCBO B · 10mA',           dev:'RCBO-B',  rcd:10  },
+  { value:'RCBO-B-30',    label:'RCBO B · 30mA',           dev:'RCBO-B',  rcd:30  },
+  { value:'RCBO-C-10',    label:'RCBO C · 10mA',           dev:'RCBO-C',  rcd:10  },
+  { value:'RCBO-C-30',    label:'RCBO C · 30mA',           dev:'RCBO-C',  rcd:30  },
+  { value:'RCBO-C-100',   label:'RCBO C · 100mA',          dev:'RCBO-C',  rcd:100 },
+  { value:'RCBO-C-300',   label:'RCBO C · 300mA',          dev:'RCBO-C',  rcd:300 },
+  { value:'MCB+RCD-30',   label:'MCB + RCD · 30mA',        dev:'MCB-C',   rcd:30  },
+  { value:'MCB+RCD-100',  label:'MCB + RCD · 100mA',       dev:'MCB-C',   rcd:100 },
+  { value:'MCB+RCD-300',  label:'MCB + RCD · 300mA',       dev:'MCB-C',   rcd:300 },
+];
+const DEVICE_META = Object.fromEntries(DEVICE_OPTIONS.map(o => [o.value, o]));
+const CSA_OPTIONS = [1,1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300,400,500];
+const SETS_OPTIONS = [1,2,3,4];
+const RATING_OPTIONS = [6,10,16,20,25,32,40,50,63,80,100,125,160,200,250,315,400,500,630];
+const RESISTIVITY = 0.0183; // ohm.mm2/m, copper at operating temperature
+
+// AS/NZS 3000:2018 Table 5.1 — minimum copper earth conductor size (mm²) as a function
+// of the copper active conductor size (mm²), for the earth run in the same cable/enclosure
+// as the actives (multicore/TPS case). This is the real per-size lookup, not a 3-tier approximation —
+// e.g. a 6mm² active only needs a 2.5mm² earth, not 6mm².
+const EARTH_MIN_TABLE = {
+  1:1, 1.5:1.5, 2.5:2.5, 4:2.5, 6:2.5, 10:4, 16:6, 25:6, 35:10, 50:16,
+  70:25, 95:25, 120:35, 150:50, 185:70, 240:95, 300:120, 400:120, 500:120
+};
+
+// AS/NZS 3000:2018 Table 8.2 — "Maximum values of resistance of final subcircuits at 80% rated
+// current relating to Zs impedance values in Table 8.1". Literal published values (Ω), giving both
+// Rphe (R1+R2, i.e. the Table 8.1-equivalent combined reading) and Re (earth conductor alone) for
+// each protective device rating and curve. Values are identical across the different cable sizes
+// listed against a given rating in the standard, since they depend only on rating + curve, not csa.
+// HRC fuses list two values per rating in the standard (two fuse categories) — the lower/stricter
+// of the two is used here so the tool doesn't over-state compliance for an unspecified fuse type.
+const TABLE_8_2 = {
+  6:  { B:{rphe:6.1, re:3.1}, C:{rphe:3.3, re:1.6}, D:{rphe:2.0, re:1.0}, Fuse:{rphe:7.4, re:3.7} },
+  10: { B:{rphe:3.7, re:1.8}, C:{rphe:2.0, re:1.0}, D:{rphe:1.2, re:0.6}, Fuse:{rphe:4.1, re:2.0} },
+  16: { B:{rphe:2.3, re:1.2}, C:{rphe:1.2, re:0.6}, D:{rphe:0.7, re:0.4}, Fuse:{rphe:2.0, re:1.0} },
+  20: { B:{rphe:1.8, re:0.9}, C:{rphe:1.0, re:0.5}, D:{rphe:0.6, re:0.3}, Fuse:{rphe:1.3, re:0.7} },
+  25: { B:{rphe:1.5, re:0.9}, C:{rphe:0.8, re:0.5}, D:{rphe:0.5, re:0.3}, Fuse:{rphe:1.0, re:0.6} },
+  32: { B:{rphe:1.2, re:0.7}, C:{rphe:0.6, re:0.4}, D:{rphe:0.4, re:0.2}, Fuse:{rphe:0.8, re:0.5} },
+  40: { B:{rphe:0.9, re:0.6}, C:{rphe:0.5, re:0.3}, D:{rphe:0.3, re:0.2}, Fuse:{rphe:0.6, re:0.4} },
+  50: { B:{rphe:0.7, re:0.5}, C:{rphe:0.4, re:0.3}, D:{rphe:0.2, re:0.2}, Fuse:{rphe:0.5, re:0.3} },
+  63: { B:{rphe:0.6, re:0.4}, C:{rphe:0.3, re:0.2}, D:{rphe:0.2, re:0.1}, Fuse:{rphe:0.4, re:0.3} },
+};
+// Maps our device dropdown's curve key to the Table 8.2 column. MCCB isn't covered by Table 8.2 at
+// all (it's an MCB/fuse table) — Type C is used as the nearest general-purpose curve, already flagged
+// elsewhere as needing datasheet verification for MCCBs.
+const CURVE_MAP = { 'MCB-B':'B', 'RCBO-B':'B', 'MCB-C':'C', 'RCBO-C':'C', 'MCB-D':'D', 'Fuse':'Fuse', 'MCCB':'C' };
+// Fallback multipliers for ratings outside Table 8.2's published range (6–63A), fitted from the
+// table's own Rphe values back to Zmax = 0.8×Uo/(mult×In). Re is extrapolated as ~50% of Rphe,
+// the most common ratio seen across the table's actual Rphe/Re pairs.
+const IA_MULT_EXTRAPOLATED = { B:5, C:10, D:15, Fuse:9 };
+
+function getTable82(curve, rating){
+  const row = TABLE_8_2[rating];
+  if (row && row[curve]) return { rphe: row[curve].rphe, re: row[curve].re, exact: true };
+  const mult = IA_MULT_EXTRAPOLATED[curve] || 10;
+  const rphe = 0.8 * 230 / (mult * rating);
+  return { rphe, re: rphe * 0.5, exact: false };
+}
+
+let rowCount = 0;
+const tbody = document.getElementById('tbody');
+const submainTbody = document.getElementById('submainTbody');
+
+/* ---------- SWITCHBOARD PHOTOS ---------- */
+const PHOTO_KEYS = ['internals', 'escutcheon', 'location'];
+const photos = {};         // key -> compressed data URL, used for on-screen preview + autosave (kept small for storage)
+const photosPrint = {};    // key -> higher-res data URL, in-memory only (not persisted), swapped in for printing
+
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim){
+          if (width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+          else { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Could not read image'));
+      img.src = ev.target.result;
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyPhotoToSlot(key, dataUrl, printDataUrl){
+  const box = document.getElementById('photoBox-' + key);
+  if (!box) return;
+  const preview = box.querySelector('.photo-preview');
+  if (dataUrl){
+    photos[key] = dataUrl;
+    photosPrint[key] = printDataUrl || dataUrl; // fall back to the same image if no HQ copy is available (e.g. after reload)
+    preview.src = dataUrl;
+    box.classList.add('has-photo');
+  } else {
+    delete photos[key];
+    delete photosPrint[key];
+    preview.removeAttribute('src');
+    box.classList.remove('has-photo');
+  }
+}
+
+function initPhotoSlot(key){
+  const input = document.getElementById('photoInput-' + key);
+  const box = document.getElementById('photoBox-' + key);
+  const removeBtn = box.querySelector('.photo-remove');
+
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+      // Small copy for on-screen preview + autosave (keeps browser storage light);
+      // larger, higher-quality copy kept in memory only, used when printing.
+      const [dataUrl, printDataUrl] = await Promise.all([
+        compressImage(file, 1280, 0.72),
+        compressImage(file, 2000, 0.9),
+      ]);
+      applyPhotoToSlot(key, dataUrl, printDataUrl);
+      scheduleSave();
+    } catch (e) {
+      setSaveStatus('Could not load that photo — try a different file.', true);
+    }
+  });
+
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyPhotoToSlot(key, null);
+    input.value = '';
+    scheduleSave();
+  });
+}
+
+PHOTO_KEYS.forEach(initPhotoSlot);
+
+// Swap in the higher-resolution copies just before printing, and back to the compact
+// on-screen copies afterward, so print/PDF quality isn't limited by the storage-optimised
+// thumbnails used for autosave.
+window.addEventListener('beforeprint', () => {
+  PHOTO_KEYS.forEach(key => {
+    if (!photosPrint[key]) return;
+    const preview = document.querySelector('#photoBox-' + key + ' .photo-preview');
+    if (preview) preview.src = photosPrint[key];
+  });
+});
+window.addEventListener('afterprint', () => {
+  PHOTO_KEYS.forEach(key => {
+    if (!photos[key]) return;
+    const preview = document.querySelector('#photoBox-' + key + ' .photo-preview');
+    if (preview) preview.src = photos[key];
+  });
+});
+
+/* ---------- RISK ASSESSMENT ---------- */
+const RISK_LEVELS = ['', 'Low', 'Medium', 'High'];
+let riskRowCount = 0;
+const riskTbody = document.getElementById('riskTbody');
+
+function riskLevelOptions(selected){
+  return RISK_LEVELS.map(v => `<option value="${v}" ${v===(selected||'')?'selected':''}>${v || '—'}</option>`).join('');
+}
+
+function addRiskRow(prefill = {}){
+  riskRowCount++;
+  const tr = document.createElement('tr');
+  tr.className = 'risk-row';
+  tr.innerHTML = `
+    <td><input class="f-hazard" value="${(prefill.hazard || '').replace(/"/g,'&quot;')}" placeholder="e.g. Electric shock"></td>
+    <td><select class="f-risk">${riskLevelOptions(prefill.risk)}</select></td>
+    <td><input class="f-control" value="${(prefill.control || '').replace(/"/g,'&quot;')}" placeholder="Control measures"></td>
+    <td><button type="button" class="del-btn" title="Remove hazard">✕</button></td>
+  `;
+  riskTbody.appendChild(tr);
+
+  const riskSelect = tr.querySelector('.f-risk');
+  const syncRiskColor = () => riskSelect.dataset.level = riskSelect.value.toLowerCase();
+  syncRiskColor();
+  riskSelect.addEventListener('input', syncRiskColor);
+
+  tr.querySelectorAll('input,select').forEach(el => el.addEventListener('input', scheduleSave));
+  tr.querySelector('.del-btn').addEventListener('click', () => { tr.remove(); scheduleSave(); });
+}
+
+function clearAllRiskRows(){
+  riskTbody.querySelectorAll('.risk-row').forEach(el => el.remove());
+}
+
+function riskRowToPrefill(tr){
+  return {
+    hazard: tr.querySelector('.f-hazard').value,
+    risk: tr.querySelector('.f-risk').value,
+    control: tr.querySelector('.f-control').value,
+  };
+}
+
+function seedDefaultRiskRows(){
+  const defaults = [
+    ['Electric shock — testing near or on live parts', 'De-energise and isolate circuits where possible; use CAT-rated test equipment; verify dead before touching conductors.'],
+    ['Arc flash / arc blast', 'Maintain safe approach distance; wear appropriate arc-rated PPE when live testing is unavoidable; use insulated tools.'],
+    ['Incorrect or incomplete isolation', 'Follow lock-out/tag-out procedure; prove dead with an approved voltage tester before and after testing.'],
+    ['Faulty or incorrectly calibrated test equipment', 'Check instrument calibration date and function (prove-test-prove) before use.'],
+    ['Confined or restricted switchboard access', 'Ensure adequate clearance and lighting; use a second person if access is restricted.'],
+    ['Working at heights', 'Use appropriate access equipment (ladder/platform); maintain three points of contact.'],
+    ['Environmental conditions (wet, poor lighting)', "Postpone testing in wet conditions where the switchboard isn't weatherproof; provide adequate task lighting."],
+    ['Other trades / public in vicinity', 'Barricade or sign the work area; communicate with site personnel before energising circuits.'],
+  ];
+  defaults.forEach(([hazard, control]) => addRiskRow({ hazard, control, risk: '' }));
+}
+
+document.getElementById('addRiskBtn').addEventListener('click', () => addRiskRow());
+document.getElementById('raAssessor').addEventListener('input', scheduleSave);
+document.getElementById('raDate').addEventListener('input', scheduleSave);
+document.getElementById('raSafeProceed').addEventListener('input', scheduleSave);
+document.querySelectorAll('.ppe-check').forEach(cb => cb.addEventListener('input', scheduleSave));
+
+/* ---------- VISUAL INSPECTION ---------- */
+let inspectionRowCount = 0;
+const inspectionTbody = document.getElementById('inspectionTbody');
+
+function addInspectionRow(prefill = {}){
+  inspectionRowCount++;
+  const tr = document.createElement('tr');
+  tr.className = 'inspection-row';
+  tr.innerHTML = `
+    <td><input class="f-item" value="${(prefill.item || '').replace(/"/g,'&quot;')}" placeholder="e.g. Switchboard enclosure condition"></td>
+    <td><div class="inspection-ok"><input type="checkbox" class="f-ok" ${prefill.ok ? 'checked' : ''}></div></td>
+    <td><input class="f-comment" value="${(prefill.comment || '').replace(/"/g,'&quot;')}" placeholder="Notes / defects (if any)"></td>
+    <td><button type="button" class="del-btn" title="Remove item">✕</button></td>
+  `;
+  inspectionTbody.appendChild(tr);
+
+  tr.querySelectorAll('input').forEach(el => el.addEventListener('input', scheduleSave));
+  tr.querySelector('.del-btn').addEventListener('click', () => { tr.remove(); scheduleSave(); });
+}
+
+function clearAllInspectionRows(){
+  inspectionTbody.querySelectorAll('.inspection-row').forEach(el => el.remove());
+}
+
+function inspectionRowToPrefill(tr){
+  return {
+    item: tr.querySelector('.f-item').value,
+    ok: tr.querySelector('.f-ok').checked,
+    comment: tr.querySelector('.f-comment').value,
+  };
+}
+
+function seedDefaultInspectionRows(){
+  const defaults = [
+    'General condition of switchboard enclosure (no damage, correct IP rating for location)',
+    'Correct identification/labelling of circuits and switchboard',
+    'Conductor connections are electrically and mechanically sound',
+    'Correct cable selection, support, and mechanical protection',
+    'Earthing and bonding connections secure and correctly identified',
+    'MEN link correctly installed and identified',
+    'Protective devices correctly rated and matched to circuit schedule',
+    'RCD/RCBO correctly installed with accessible test button',
+    'Correct polarity — single-pole devices switch the active conductor only',
+    'Required warning notices and safety signs present',
+    'Isolating devices accessible and clearly identified',
+    'No visible signs of damage, corrosion, or overheating',
+  ];
+  defaults.forEach(item => addInspectionRow({ item, ok: false, comment: '' }));
+}
+
+document.getElementById('addInspectionBtn').addEventListener('click', () => addInspectionRow());
+
+/* ---------- AUTOSAVE (browser localStorage) ---------- */
+const STORAGE_KEY = 'cartella-as3000-test-sheet-v2';
+const HEADER_FIELD_IDS = ['site','descJob','testDate','tester','licence','instrument','serial','calDue'];
+const ROW_FIELD_MAP = {
+  circuit:'f-circuit', desc:'f-desc', csaA:'f-csaA', setsA:'f-setsA', csaC:'f-csaC', setsC:'f-setsC',
+  len:'f-len', dev:'f-dev', rating:'f-rating', phase:'f-phase', irL1:'f-ir-l1', irL2:'f-ir-l2', irL3:'f-ir-l3', irN:'f-ir-n', method:'f-method',
+  r1r2:'f-r1r2', zs:'f-zs', polarity:'f-polarity', phaseseq:'f-phaseseq', t1:'f-t1', t5:'f-t5'
+};
+let storageAvailable = true;
+try {
+  const t = '__storage_test__';
+  window.localStorage.setItem(t, '1');
+  window.localStorage.removeItem(t);
+} catch (e) {
+  storageAvailable = false;
+}
+
+function rowToPrefill(tr){
+  const out = {};
+  for (const key in ROW_FIELD_MAP){
+    const el = tr.querySelector('.' + ROW_FIELD_MAP[key]);
+    out[key] = el ? el.value : '';
+  }
+  return out;
+}
+
+function serializeState(){
+  const header = {};
+  HEADER_FIELD_IDS.forEach(id => { header[id] = document.getElementById(id).value; });
+  const rows = [...tbody.querySelectorAll('.circuit-row')].map(rowToPrefill);
+  const submainRows = [...submainTbody.querySelectorAll('.circuit-row')].map(rowToPrefill);
+  const riskRows = [...document.querySelectorAll('.risk-row')].map(riskRowToPrefill);
+  const ppe = [...document.querySelectorAll('.ppe-check')].filter(cb => cb.checked).map(cb => cb.value);
+  const riskAssessment = {
+    rows: riskRows,
+    ppe,
+    assessor: document.getElementById('raAssessor').value,
+    date: document.getElementById('raDate').value,
+    safeToProceed: document.getElementById('raSafeProceed').checked,
+  };
+  const inspectionRows = [...document.querySelectorAll('.inspection-row')].map(inspectionRowToPrefill);
+  const sections = {
+    submainInclude: document.getElementById('submainInclude').checked,
+    circuitInclude: document.getElementById('circuitInclude').checked,
+  };
+  return { header, rows, submainRows, photos: { ...photos }, riskAssessment, inspectionRows, sections, savedAt: Date.now() };
+}
+
+function setSaveStatus(text, isWarn){
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'save-status' + (isWarn ? ' warn' : '');
+}
+
+let saveTimer = null;
+function scheduleSave(){
+  if (!storageAvailable) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeState()));
+      const t = new Date();
+      setSaveStatus('Saved ' + t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+    } catch (e) {
+      setSaveStatus('Autosave failed — your browser storage may be full or blocked.', true);
+    }
+  }, 400);
+}
+
+function loadState(){
+  if (!storageAvailable) return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearAllRows(targetTbody=tbody){
+  targetTbody.querySelectorAll('.circuit-row, .detail-row').forEach(el => el.remove());
+}
+
+function restoreState(data){
+  if (data.header){
+    HEADER_FIELD_IDS.forEach(id => {
+      if (data.header[id] !== undefined) document.getElementById(id).value = data.header[id];
+    });
+    if (typeof updateDocumentTitle === 'function') updateDocumentTitle();
+  }
+  if (data.photos){
+    PHOTO_KEYS.forEach(key => {
+      if (data.photos[key]) applyPhotoToSlot(key, data.photos[key]);
+    });
+  }
+  clearAllRows(tbody);
+  if (data.rows && data.rows.length){
+    data.rows.forEach(r => addRow(r, tbody, 'circuit-row-main'));
+  }
+
+  clearAllRows(submainTbody);
+  if (data.submainRows && data.submainRows.length){
+    data.submainRows.forEach(r => addRow(r, submainTbody, 'circuit-row-submain'));
+  }
+
+  if (data.sections){
+    document.getElementById('submainInclude').checked = data.sections.submainInclude !== false;
+    document.getElementById('circuitInclude').checked = data.sections.circuitInclude !== false;
+  }
+  document.getElementById('submainBody').style.display = document.getElementById('submainInclude').checked ? '' : 'none';
+  document.getElementById('circuitBody').style.display = document.getElementById('circuitInclude').checked ? '' : 'none';
+  document.getElementById('submainCard').classList.toggle('section-excluded', !document.getElementById('submainInclude').checked);
+  document.getElementById('circuitCard').classList.toggle('section-excluded', !document.getElementById('circuitInclude').checked);
+
+  clearAllRiskRows();
+  if (data.riskAssessment && data.riskAssessment.rows && data.riskAssessment.rows.length){
+    data.riskAssessment.rows.forEach(r => addRiskRow(r));
+    const ppe = data.riskAssessment.ppe || [];
+    document.querySelectorAll('.ppe-check').forEach(cb => { cb.checked = ppe.includes(cb.value); });
+    document.getElementById('raAssessor').value = data.riskAssessment.assessor || '';
+    document.getElementById('raDate').value = data.riskAssessment.date || '';
+    document.getElementById('raSafeProceed').checked = !!data.riskAssessment.safeToProceed;
+  } else {
+    seedDefaultRiskRows();
+  }
+
+  clearAllInspectionRows();
+  if (data.inspectionRows && data.inspectionRows.length){
+    data.inspectionRows.forEach(r => addInspectionRow(r));
+  } else {
+    seedDefaultInspectionRows();
+  }
+}
+
+function opts(list, selected){
+  return list.map(v => `<option value="${v}" ${String(v)===String(selected)?'selected':''}>${v}</option>`).join('');
+}
+
+function deviceOptions(selected){
+  const sel = selected || 'MCB-C';
+  return DEVICE_OPTIONS.map(o => `<option value="${o.value}" ${o.value===sel?'selected':''}>${o.label}</option>`).join('');
+}
+
+function addRow(prefill={}, targetTbody=tbody, extraClass=''){
+  rowCount++;
+  const id = 'r'+rowCount;
+  const tr = document.createElement('tr');
+  tr.className = 'circuit-row' + (extraClass ? ' ' + extraClass : '');
+  tr.dataset.id = id;
+  tr.innerHTML = `
+    <td class="id"><input class="f-circuit" value="${prefill.circuit||('C'+rowCount)}"></td>
+    <td class="desc"><input class="f-desc" placeholder="e.g. Power" value="${prefill.desc||''}"></td>
+    <td><select class="f-csaA">${opts(CSA_OPTIONS, prefill.csaA||2.5)}</select></td>
+    <td><select class="f-setsA" title="Parallel active sets">${opts(SETS_OPTIONS, prefill.setsA||1)}</select></td>
+    <td><select class="f-csaC">${opts(CSA_OPTIONS, prefill.csaC||2.5)}</select></td>
+    <td><select class="f-setsC" title="Parallel earth sets">${opts(SETS_OPTIONS, prefill.setsC||1)}</select></td>
+    <td><input class="f-len" type="number" min="0" step="0.5" value="${prefill.len||''}" placeholder="m"></td>
+    <td><select class="f-dev">${deviceOptions(prefill.dev||'MCB-C')}</select></td>
+    <td><select class="f-rating">${opts(RATING_OPTIONS, prefill.rating||20)}</select></td>
+    <td><select class="f-phase">
+          <option value="1" ${(prefill.phase||'1')==='1'?'selected':''}>1&phi;</option>
+          <option value="3" ${prefill.phase==='3'?'selected':''}>3&phi;</option>
+        </select></td>
+    <td class="ir-cell">
+      <div class="ir-group">
+        <input class="f-ir-l1" type="number" min="0" step="0.01" placeholder="L1" value="${prefill.irL1||''}" title="Insulation resistance L1-E (MΩ)">
+        <input class="f-ir-l2 ${(prefill.phase||'1')==='3'?'':'ir-hidden'}" type="number" min="0" step="0.01" placeholder="L2" value="${prefill.irL2||''}" title="Insulation resistance L2-E (MΩ)">
+        <input class="f-ir-l3 ${(prefill.phase||'1')==='3'?'':'ir-hidden'}" type="number" min="0" step="0.01" placeholder="L3" value="${prefill.irL3||''}" title="Insulation resistance L3-E (MΩ)">
+        <input class="f-ir-n" type="number" min="0" step="0.01" placeholder="N" value="${prefill.irN||''}" title="Insulation resistance N-E (MΩ)">
+      </div>
+    </td>
+    <td><select class="f-method">
+          <option value="r1r2" ${(prefill.method||'r1r2')==='r1r2'?'selected':''}>Rphe</option>
+          <option value="r2only" ${prefill.method==='r2only'?'selected':''}>Re</option>
+        </select></td>
+    <td><input class="f-r1r2" type="number" min="0" step="0.01" placeholder="Ω" value="${prefill.r1r2||''}"></td>
+    <td><input class="f-zs" type="number" min="0" step="0.01" placeholder="Ω" value="${prefill.zs||''}" title="Directly measured fault loop impedance (from a loop impedance/EFLI tester), if used instead of or alongside the continuity method"></td>
+    <td><select class="f-polarity">
+          <option value="" ${!prefill.polarity?'selected':''}>—</option>
+          <option value="correct" ${prefill.polarity==='correct'?'selected':''}>Pass</option>
+          <option value="incorrect" ${prefill.polarity==='incorrect'?'selected':''}>Fail</option>
+        </select></td>
+    <td><select class="f-phaseseq">
+          <option value="" ${!prefill.phaseseq?'selected':''}>—</option>
+          <option value="cw" ${prefill.phaseseq==='cw'?'selected':''}>&#8635; CW</option>
+          <option value="ccw" ${prefill.phaseseq==='ccw'?'selected':''}>&#8634; CCW</option>
+          <option value="na" ${prefill.phaseseq==='na'?'selected':''}>N/A</option>
+        </select></td>
+    <td><input class="f-t1" type="number" min="0" step="1" placeholder="ms" value="${prefill.t1||''}"></td>
+    <td><input class="f-t5" type="number" min="0" step="1" placeholder="ms" value="${prefill.t5||''}"></td>
+    <td class="result-cell"><span class="badge pending">—</span></td>
+    <td><button class="del-btn" title="Remove circuit">✕</button></td>
+  `;
+  const detailTr = document.createElement('tr');
+  detailTr.className = 'detail-row hidden';
+  detailTr.innerHTML = `<td colspan="20"><div class="detail-grid"></div></td>`;
+
+  targetTbody.appendChild(tr);
+  targetTbody.appendChild(detailTr);
+
+  tr.querySelectorAll('input,select').forEach(el => el.addEventListener('input', () => evaluateRow(tr, detailTr)));
+  tr.querySelectorAll('select').forEach(sel => {
+    const syncTitle = () => { sel.title = sel.selectedOptions[0] ? sel.selectedOptions[0].text : ''; };
+    syncTitle();
+    sel.addEventListener('change', syncTitle);
+  });
+  tr.querySelector('.del-btn').addEventListener('click', () => { tr.remove(); detailTr.remove(); recalcSummary(); });
+  tr.querySelector('.result-cell .badge').addEventListener('click', () => detailTr.classList.toggle('hidden'));
+
+  evaluateRow(tr, detailTr);
+  return tr;
+}
+
+function evaluateRow(tr, detailTr){
+  const g = cls => tr.querySelector(cls);
+  const csaA = parseFloat(g('.f-csaA').value);
+  const setsA = parseFloat(g('.f-setsA').value) || 1;
+  const csaC = parseFloat(g('.f-csaC').value);
+  const setsC = parseFloat(g('.f-setsC').value) || 1;
+  const len = parseFloat(g('.f-len').value);
+  const devValue = g('.f-dev').value;
+  const devMeta = DEVICE_META[devValue] || { dev: devValue, rcd: null };
+  const dev = devMeta.dev;
+  const hasRCD = devMeta.rcd !== null;
+  const rcdMa = devMeta.rcd;
+  const rating = parseFloat(g('.f-rating').value);
+  const phase = g('.f-phase').value; // '1' or '3'
+  const polarity = g('.f-polarity').value; // '', 'correct', 'incorrect'
+  const phaseSeq = g('.f-phaseseq').value; // '', 'cw', 'ccw', 'na'
+  const irL1El = g('.f-ir-l1'), irL2El = g('.f-ir-l2'), irL3El = g('.f-ir-l3'), irNEl = g('.f-ir-n');
+  const is3Phase = phase === '3';
+  irL2El.classList.toggle('ir-hidden', !is3Phase);
+  irL3El.classList.toggle('ir-hidden', !is3Phase);
+  if (!is3Phase){ irL2El.value = ''; irL3El.value = ''; }
+  const irL1 = parseFloat(irL1El.value);
+  const irL2 = parseFloat(irL2El.value);
+  const irL3 = parseFloat(irL3El.value);
+  const irN = parseFloat(irNEl.value);
+  const method = g('.f-method').value; // 'r1r2' or 'r2only'
+  const contInput = g('.f-r1r2');
+  contInput.placeholder = 'Ω';
+  const measuredCont = parseFloat(contInput.value);
+  const measuredZs = parseFloat(g('.f-zs').value); // direct EFLI/loop-impedance tester reading, if used
+  const t1 = parseFloat(g('.f-t1').value);
+  const t5 = parseFloat(g('.f-t5').value);
+  const ze = 0; // external loop impedance no longer collected on this sheet — Zs below reflects internal (continuity) impedance only
+  const uo = 230; // AS/NZS 3000 standard nominal single-phase voltage
+
+  // A row only shows a definitive Result once every required test reading has been entered —
+  // cable/device selections have defaults so they don't count; these do. Three-phase circuits
+  // need L1/L2/L3/N-E; single-phase needs L1-E and N-E.
+  const irComplete = is3Phase
+    ? (!isNaN(irL1) && !isNaN(irL2) && !isNaN(irL3) && !isNaN(irN))
+    : (!isNaN(irL1) && !isNaN(irN));
+  const isComplete = irComplete
+    && !isNaN(measuredCont)
+    && !isNaN(len) && len > 0
+    && polarity !== ''
+    && (!hasRCD || (!isNaN(t1) && !isNaN(t5)))
+    && (phase !== '3' || (phaseSeq !== '' ));
+
+  const badge = tr.querySelector('.result-cell .badge');
+  const detailGrid = detailTr.querySelector('.detail-grid');
+
+  const notes = [];
+  let hasFail = false, hasWarn = false;
+
+  // Theoretical resistance from cable size, parallel sets, and length
+  // Parallel conductors act as one larger effective conductor: effective csa = csa × number of sets.
+  const effCsaA = csaA * setsA;
+  const effCsaC = csaC * setsC;
+  let theoreticalCont = null;   // comparable to what was actually measured
+  let theoreticalR1 = null;     // R1 for the RE method, assumed to run the same length as the measured earth conductor
+  if (!isNaN(len) && len > 0 && effCsaA && effCsaC){
+    if (method === 'r2only'){
+      theoreticalCont = RESISTIVITY * len / effCsaC;               // earth conductor only
+      theoreticalR1 = RESISTIVITY * len / effCsaA;                  // active, not measured — estimated for Zs
+    } else {
+      theoreticalCont = RESISTIVITY * len * (1/effCsaA + 1/effCsaC); // combined active + earth
+    }
+  }
+
+  // Earth conductor size compliance — AS/NZS 3000 Table 5.1
+  // Minimum earth conductor size is looked up per the active conductor's individual size (EARTH_MIN_TABLE) —
+  // NOT the combined/parallel size, and NOT a flat "same size up to 16mm²" rule (a 6mm² active only needs
+  // a 2.5mm² earth). Parallel earth sets don't reduce the requirement — each earth conductor run must
+  // individually meet the table minimum for the active conductor size.
+  let minEarthCsa = null, earthSizeResult = null;
+  if (csaA && csaC){
+    minEarthCsa = EARTH_MIN_TABLE[csaA] ?? Math.max(2.5, csaA * 0.25);
+    earthSizeResult = csaC >= minEarthCsa ? 'PASS' : 'FAIL';
+    if (earthSizeResult === 'FAIL'){
+      hasFail = true;
+      notes.push(['fail', `Earth conductor (${csaC}mm²) is below the AS/NZS 3000 Table 5.1 minimum of ${minEarthCsa}mm² for a ${csaA}mm² active conductor — undersized earth conductor.`]);
+    }
+  }
+
+  // Insulation resistance — L1(+L2+L3)-E and N-E; worst-case across whichever apply
+  let irResult = null, irWorst = null;
+  if (is3Phase){
+    if (!isNaN(irL1) && !isNaN(irL2) && !isNaN(irL3) && !isNaN(irN)){
+      irWorst = Math.min(irL1, irL2, irL3, irN);
+      irResult = irWorst >= 1 ? 'PASS' : 'FAIL';
+      if (irResult === 'FAIL'){
+        const failedPhases = [['L1',irL1],['L2',irL2],['L3',irL3],['N',irN]].filter(([,v]) => v < 1).map(([l]) => l);
+        hasFail = true;
+        notes.push(['fail', `Insulation resistance below the 1 MΩ minimum on ${failedPhases.join(', ')} (L1=${irL1}MΩ, L2=${irL2}MΩ, L3=${irL3}MΩ, N=${irN}MΩ).`]);
+      }
+    }
+  } else if (!isNaN(irL1) && !isNaN(irN)){
+    irWorst = Math.min(irL1, irN);
+    irResult = irWorst >= 1 ? 'PASS' : 'FAIL';
+    if (irResult === 'FAIL'){
+      const failedPhases = [['L1',irL1],['N',irN]].filter(([,v]) => v < 1).map(([l]) => l);
+      hasFail = true;
+      notes.push(['fail', `Insulation resistance below the 1 MΩ minimum on ${failedPhases.join(', ')} (L1=${irL1}MΩ, N=${irN}MΩ).`]);
+    }
+  }
+
+  // Zmax + Zs — this is the AS/NZS 3000 Table 8.1/8.2 conformance check: your continuity reading
+  // (via the "Rphe" method) must produce a Zs at or below this Zmax to pass. RCBOs and "MCB + RCD"
+  // combos use the SAME Table 8.2 Rphe/Re values as their equivalent standalone MCB curve — the
+  // built-in/paired RCD is a separate, additional protection mechanism and doesn't change the
+  // overcurrent-device curve's own Table 8.2 characteristics.
+  let zmax = null, zmaxBasis = '', zs = null, zsResult = null;
+  let reMaxTable82 = null, reMaxIsExact = false;
+  {
+    const curve = CURVE_MAP[dev] || 'C';
+    const t82 = getTable82(curve, rating);
+    zmax = t82.rphe;
+    reMaxTable82 = t82.re;
+    reMaxIsExact = t82.exact;
+    zmaxBasis = t82.exact
+      ? `AS/NZS 3000 Table 8.2, Rphe column — ${rating}A Type ${curve}${curve==='Fuse'?' HRC fuse':' MCB'}${hasRCD?' (same values apply with the paired RCD)':''}`
+      : `Table 8.2 doesn't cover ${rating}A — extrapolated using ≈${IA_MULT_EXTRAPOLATED[curve]}×In (Zmax = 0.8 × ${uo}V ÷ Ia)`;
+  }
+  // RCD-equipped devices also have the 50V touch-voltage allowance available as an alternative,
+  // generally more lenient compliance path — shown for reference only, doesn't affect pass/fail here.
+  if (hasRCD){
+    const touchVoltageZmax = 50 / (rcdMa/1000);
+    notes.push(['pass', `RCD touch-voltage allowance (50 ÷ ${rcdMa}mA = ${touchVoltageZmax.toFixed(2)}Ω) is also available as an alternative compliance path for this circuit, alongside the Table 8.2 result above.`]);
+  }
+
+  // Table 8.2's Re column — a maximum earth-conductor-only resistance, independent of R1. This is
+  // the direct basis for the Re (earth-only/wander-lead) method, so it doesn't need an R1 estimate.
+  let reTable82Result = null;
+  if (method === 'r2only' && !isNaN(measuredCont) && reMaxTable82 !== null){
+    reTable82Result = measuredCont <= reMaxTable82 ? 'PASS' : 'FAIL';
+    const basisTxt = reMaxIsExact ? 'AS/NZS 3000 Table 8.2' : 'extrapolated beyond Table 8.2\'s published range';
+    if (reTable82Result === 'FAIL'){
+      hasFail = true;
+      notes.push(['fail', `Re (${measuredCont}Ω) exceeds the ${basisTxt} limit (${reMaxTable82.toFixed(2)}Ω) for this protective device.`]);
+    } else {
+      notes.push(['pass', `Re (${measuredCont}Ω) is within the ${basisTxt} limit (${reMaxTable82.toFixed(2)}Ω) for this protective device.`]);
+    }
+  }
+
+  // A directly measured Zs (from a loop impedance/EFLI tester) is more accurate than deriving Zs
+  // from continuity + assumptions, so when it's provided it's the authoritative Table 8.1 check —
+  // ahead of both the Rphe/Re continuity result and the estimated Zs below.
+  let zsMeasuredResult = null;
+  if (!isNaN(measuredZs)){
+    zsMeasuredResult = measuredZs <= zmax ? 'PASS' : 'FAIL';
+    if (zsMeasuredResult === 'FAIL'){
+      hasFail = true;
+      notes.push(['fail', `Measured Zs (${measuredZs}Ω) exceeds Zmax (${zmax.toFixed(2)}Ω) — does not meet the AS/NZS 3000 Table 8.1 requirement for this protective device.`]);
+    } else {
+      notes.push(['pass', `Measured Zs (${measuredZs}Ω) is within the AS/NZS 3000 Table 8.1 limit (${zmax.toFixed(2)}Ω) for this protective device.`]);
+    }
+  }
+
+  let zsIsEstimate = false;
+  if (!isNaN(measuredCont)){
+    if (method === 'r2only'){
+      // R1 isn't measured in this method — it's assumed to run the same length as the measured
+      // earth conductor (R1 = ρ × length ÷ active csa, using the same Length field), so Zs can
+      // still be shown alongside Table 8.1 as a secondary, informational cross-check. This is an
+      // estimate, not a measurement, so it does NOT drive pass/fail for the Re method — the exact
+      // Table 8.2 Re check above is the authoritative result (that's the whole point of Table 8.2:
+      // no R1 estimate needed). A hard FAIL here would incorrectly override a genuine Table 8.2 pass.
+      const r1 = theoreticalR1 !== null ? theoreticalR1 : 0;
+      zs = ze + r1 + measuredCont;
+      zsIsEstimate = true;
+    } else {
+      zs = ze + measuredCont;
+    }
+    zsResult = zs <= zmax ? 'PASS' : 'FAIL';
+    // If a direct Zs measurement was already provided above, this derived figure is only
+    // ever shown as secondary/informational — it never independently fails the circuit.
+    const derivedIsInformational = zsIsEstimate || !isNaN(measuredZs);
+    if (zsResult === 'FAIL'){
+      if (derivedIsInformational){
+        if (isNaN(measuredZs)) hasWarn = true; // only warn when there's no real measurement backing this up
+        notes.push(['warn', `Derived Zs (${zs.toFixed(2)}Ω${zsIsEstimate?', R1 assumed same length as E':''}) exceeds Zmax (${zmax.toFixed(2)}Ω) — informational only${!isNaN(measuredZs)?'; the measured Zs above is authoritative':', the Table 8.2 Re result above is authoritative'}.`]);
+      } else {
+        hasFail = true;
+        notes.push(['fail', `Zs (${zs.toFixed(2)}Ω) exceeds Zmax (${zmax.toFixed(2)}Ω) — does not meet the AS/NZS 3000 Table 8.1 requirement for this protective device.`]);
+      }
+    } else {
+      notes.push(['pass', `Zs (${zs.toFixed(2)}Ω${zsIsEstimate?', R1 assumed same length as E':''}) is within the AS/NZS 3000 Table 8.1/8.2 limit (${zmax.toFixed(2)}Ω) for this protective device.`]);
+    }
+  }
+
+  // Cable-size cross-check — flags a measured reading that's well above what the nominated
+  // cable size, parallel sets, and length would theoretically produce (loose terminal, bad joint,
+  // wrong cable-size entry, etc).
+  let cableFlag = 'n/a';
+  if (theoreticalCont !== null && !isNaN(measuredCont)){
+    if (measuredCont > 1.5 * theoreticalCont){
+      cableFlag = 'CHECK CONNECTION';
+      hasWarn = true;
+      const label = method === 'r2only' ? 'Re' : 'Rphe';
+      const cableDesc = method === 'r2only'
+        ? `${csaC}mm²${setsC>1?` ×${setsC}`:''} earth`
+        : `${csaA}mm²${setsA>1?` ×${setsA}`:''} active / ${csaC}mm²${setsC>1?` ×${setsC}`:''} earth`;
+      notes.push(['warn', `Measured ${label} (${measuredCont}Ω) is well above the theoretical value (${theoreticalCont.toFixed(3)}Ω) for ${len}m of ${cableDesc} — check for a loose or high-resistance joint, or confirm the cable size/length entered.`]);
+    } else {
+      cableFlag = 'OK';
+    }
+  }
+
+  // Polarity
+  let polarityResult = null;
+  if (polarity){
+    polarityResult = polarity === 'correct' ? 'PASS' : 'FAIL';
+    if (polarityResult === 'FAIL'){ hasFail = true; notes.push(['fail', `Polarity check recorded as incorrect — active, neutral and earth connections must be re-verified before energising.`]); }
+  }
+
+  // Phase sequence (3-phase circuits only)
+  let phaseSeqResult = null;
+  if (phase === '3' && phaseSeq && phaseSeq !== 'na'){
+    phaseSeqResult = phaseSeq === 'cw' ? 'PASS' : 'FAIL';
+    if (phaseSeqResult === 'FAIL'){ hasFail = true; notes.push(['fail', `Phase sequence recorded as counter-clockwise (reversed) — check rotation (e.g. for motor loads) before energising.`]); }
+  }
+
+  // RCD trip
+  let rcd1Result = null, rcd5Result = null;
+  if (hasRCD){
+    if (!isNaN(t1)){
+        rcd1Result = t1 <= 300 ? 'PASS' : 'FAIL';
+      if (rcd1Result === 'FAIL'){ hasFail = true; notes.push(['fail', `RCD trip time at 1×IΔn (${t1}ms) exceeds 300ms.`]); }
+    }
+    if (!isNaN(t5)){
+        rcd5Result = t5 <= 40 ? 'PASS' : 'FAIL';
+      if (rcd5Result === 'FAIL'){ hasFail = true; notes.push(['fail', `RCD trip time at 5×IΔn (${t5}ms) exceeds 40ms.`]); }
+    }
+  }
+
+  // Overall
+  let overall = 'pending', label = 'Enter results';
+  if (isComplete){
+    if (hasFail){ overall = 'fail'; label = 'FAIL'; }
+    else if (hasWarn){ overall = 'warn'; label = 'CHECK'; }
+    else { overall = 'pass'; label = 'PASS'; }
+  }
+  badge.className = 'badge ' + overall;
+  badge.innerHTML = `<span class="dot"></span>${label}`;
+
+  // Detail row
+  const contLabel = method === 'r2only' ? 'Re (earth continuity only)' : 'Rphe (R1+R2 combined)';
+  const rows = [
+    ['Phase configuration', phase === '3' ? 'Three-phase (3φ)' : 'Single-phase (1φ)'],
+    ['Parallel sets', `Active ×${setsA} (${csaA}mm² each) — Earth ×${setsC} (${csaC}mm² each)`],
+    ['Earth size compliance (Table 5.1)', minEarthCsa !== null ? `Min. ${minEarthCsa}mm² for ${csaA}mm² active → ${csaC}mm² fitted → ${earthSizeResult}` : '—'],
+    ['Continuity test method', contLabel],
+    ['Zmax — Table 8.1/8.2 Rphe (basis)', `${zmax.toFixed(2)} Ω — ${zmaxBasis}`],
+    ['Measured Zs (loop tester) vs Table 8.1', !isNaN(measuredZs) ? `${measuredZs} Ω → ${zsMeasuredResult}` : 'Not measured'],
+    ['Derived Zs vs Table 8.1/8.2 Rphe', zs !== null ? `${zs.toFixed(2)} Ω${zsIsEstimate?' (R1 assumed same length as E)':''} → ${zsResult||'—'}${!isNaN(measuredZs)?' (informational — measured Zs is authoritative)':''}` : '—'],
+    ...(method === 'r2only' && theoreticalR1 !== null ? [['R1 assumption (for Zs row above)', `${theoreticalR1.toFixed(3)} Ω = 0.0183 × ${len}m ÷ ${effCsaA}mm² active — same ${len}m length as your Re reading, nominated active csa`]] : []),
+    ...(method === 'r2only' ? [['Re vs Table 8.2', reTable82Result ? `${measuredCont}Ω vs max ${reMaxTable82.toFixed(2)}Ω${reMaxIsExact?'':' (extrapolated)'} → ${reTable82Result}` : '—']] : []),
+    [method === 'r2only' ? 'Theoretical earth resistance' : 'Theoretical R1+R2 for cable', theoreticalCont !== null ? `${theoreticalCont.toFixed(3)} Ω (${effCsaA}mm² eff. active / ${effCsaC}mm² eff. earth, ${len}m)` : '—'],
+    ['Cable-size cross-check', cableFlag],
+    ['Insulation resistance', irResult
+      ? (is3Phase ? `L1=${irL1}MΩ, L2=${irL2}MΩ, L3=${irL3}MΩ, N=${irN}MΩ (worst ${irWorst}MΩ) → ${irResult}` : `L1=${irL1}MΩ, N=${irN}MΩ (worst ${irWorst}MΩ) → ${irResult}`)
+      : '—'],
+    ['RCD trip 1× / 5×', hasRCD ? `${!isNaN(t1)?t1+'ms→'+rcd1Result:'—'} / ${!isNaN(t5)?t5+'ms→'+rcd5Result:'—'}` : 'No RCD on this circuit'],
+    ['Polarity', polarityResult ? polarityResult : 'Not recorded'],
+    ['Phase sequence', phase === '3' ? (phaseSeqResult ? `${phaseSeqResult} (${phaseSeq==='cw'?'↻ CW':'↺ CCW'})` : (phaseSeq === 'na' ? 'N/A' : 'Not recorded')) : 'N/A (single-phase)'],
+  ];
+  if (phase === '3'){
+    rows.push(['3-phase note', 'Insulation resistance is captured per phase (L1/L2/L3) above. The continuity/Ohms reading is still a single field — record the worst-case (highest Ω) value across all three active conductors, or document each phase separately on the job file if full per-phase evidence is required.']);
+  }
+  let html = rows.map(([k,v]) => `<div class="dg-item"><b>${k}</b>${v}</div>`).join('');
+  if (notes.length){
+    html += `<div class="dg-item" style="flex-basis:100%;"><b>Notes</b>${notes.map(([lvl,txt]) => `<div class="note-${lvl}">${txt}</div>`).join('')}</div>`;
+  }
+  detailGrid.innerHTML = html;
+
+  recalcSummary();
+}
+
+function recalcSummary(){
+  const submainOn = document.getElementById('submainInclude') ? document.getElementById('submainInclude').checked : true;
+  const circuitOn = document.getElementById('circuitInclude') ? document.getElementById('circuitInclude').checked : true;
+  const badges = [
+    ...(submainOn ? [...submainTbody.querySelectorAll('.result-cell .badge')] : []),
+    ...(circuitOn ? [...tbody.querySelectorAll('.result-cell .badge')] : []),
+  ];
+  document.getElementById('mTotal').textContent = badges.length;
+  document.getElementById('mPass').textContent = badges.filter(b=>b.classList.contains('pass')).length;
+  document.getElementById('mFail').textContent = badges.filter(b=>b.classList.contains('fail')).length;
+  document.getElementById('mWarn').textContent = badges.filter(b=>b.classList.contains('warn')).length;
+  scheduleSave();
+}
+
+// Suggests the next circuit/submain number based on the last row already in that table
+// (e.g. last row "C3" -> new row defaults to "C4"), rather than a fixed global counter.
+function nextRowLabel(targetTbody, fallbackPrefix){
+  const rows = [...targetTbody.querySelectorAll('.circuit-row')];
+  if (!rows.length) return fallbackPrefix + '1';
+  const lastVal = rows[rows.length - 1].querySelector('.f-circuit').value.trim();
+  const m = lastVal.match(/^(.*?)(\d+)\s*$/);
+  if (m){
+    const prefix = m[1];
+    const num = parseInt(m[2], 10) + 1;
+    return prefix + num;
+  }
+  return (lastVal || fallbackPrefix) + (rows.length + 1);
+}
+
+document.getElementById('addRowBtn').addEventListener('click', () => addRow({ circuit: nextRowLabel(tbody, 'C') }, tbody, 'circuit-row-main'));
+document.getElementById('addSubmainRowBtn').addEventListener('click', () => addRow({ circuit: nextRowLabel(submainTbody, 'SM') }, submainTbody, 'circuit-row-submain'));
+document.getElementById('printBtn').addEventListener('click', () => { updateDocumentTitle(); window.print(); });
+
+function wireSectionToggle(checkboxId, bodyId){
+  const cb = document.getElementById(checkboxId);
+  const body = document.getElementById(bodyId);
+  const card = body.closest('.card');
+  const sync = () => {
+    body.style.display = cb.checked ? '' : 'none';
+    card.classList.toggle('section-excluded', !cb.checked);
+  };
+  sync();
+  cb.addEventListener('change', () => { sync(); recalcSummary(); scheduleSave(); });
+}
+wireSectionToggle('submainInclude', 'submainBody');
+wireSectionToggle('circuitInclude', 'circuitBody');
+
+HEADER_FIELD_IDS.forEach(id => {
+  document.getElementById(id).addEventListener('input', scheduleSave);
+});
+
+// Keeps the browser tab title (and therefore the default "Save as PDF" filename most
+// browsers suggest) in sync with the job details, e.g.
+// "Electrical Installation Test Sheet - 12 Wattle St - New sub-board + 6 circuits".
+const BASE_TITLE = 'Electrical Installation Test Sheet';
+function updateDocumentTitle(){
+  const project = document.getElementById('site').value.trim();
+  const desc = document.getElementById('descJob').value.trim();
+  const parts = [BASE_TITLE, project, desc].filter(Boolean);
+  document.title = parts.join(' - ').replace(/[\\/:*?"<>|]/g, '-');
+}
+document.getElementById('site').addEventListener('input', updateDocumentTitle);
+document.getElementById('descJob').addEventListener('input', updateDocumentTitle);
+window.addEventListener('beforeprint', updateDocumentTitle);
+updateDocumentTitle();
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (!confirm('Clear all saved data on this device and start a new sheet? This cannot be undone.')) return;
+  try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  HEADER_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
+  PHOTO_KEYS.forEach(key => {
+    applyPhotoToSlot(key, null);
+    const input = document.getElementById('photoInput-' + key);
+    if (input) input.value = '';
+  });
+  clearAllRows(tbody);
+  clearAllRows(submainTbody);
+  recalcSummary();
+  document.getElementById('submainInclude').checked = true;
+  document.getElementById('circuitInclude').checked = true;
+  document.getElementById('submainBody').style.display = '';
+  document.getElementById('circuitBody').style.display = '';
+  document.getElementById('submainCard').classList.remove('section-excluded');
+  document.getElementById('circuitCard').classList.remove('section-excluded');
+  clearAllRiskRows();
+  seedDefaultRiskRows();
+  document.querySelectorAll('.ppe-check').forEach(cb => { cb.checked = false; });
+  document.getElementById('raAssessor').value = '';
+  document.getElementById('raDate').value = '';
+  document.getElementById('raSafeProceed').checked = false;
+  clearAllInspectionRows();
+  seedDefaultInspectionRows();
+  setSaveStatus('Cleared');
+});
+
+document.getElementById('csvBtn').addEventListener('click', () => {
+  const headers = ['Section','Circuit','Description','Active csa','Active sets','Earth csa','Earth sets','Length (m)','Device','Rating','Phase','RCD mA','Insul R L1 (MΩ)','Insul R L2 (MΩ)','Insul R L3 (MΩ)','Insul R N (MΩ)','Continuity method','R1+R2 or R2 (Ω)','Measured Zs (Ω)','RCD t1 (ms)','RCD t5 (ms)','Polarity','Phase Sequence','Result'];
+  const lines = [headers.join(',')];
+  const polarityLabel = v => v === 'correct' ? 'Pass' : v === 'incorrect' ? 'Fail' : '';
+  const phaseSeqLabel = v => v === 'cw' ? 'Pass (CW)' : v === 'ccw' ? 'Fail (CCW)' : v === 'na' ? 'N/A' : '';
+  const exportSection = (label, container, isIncluded) => {
+    if (!isIncluded) return;
+    container.querySelectorAll('.circuit-row').forEach(tr => {
+      const g = cls => tr.querySelector(cls).value;
+      const result = tr.querySelector('.badge').textContent.trim();
+      const devMeta = DEVICE_META[g('.f-dev')] || {};
+      lines.push([label,g('.f-circuit'),g('.f-desc'),g('.f-csaA'),g('.f-setsA'),g('.f-csaC'),g('.f-setsC'),g('.f-len'),g('.f-dev'),g('.f-rating'),g('.f-phase')+'φ',devMeta.rcd ?? 'None',g('.f-ir-l1'),g('.f-ir-l2'),g('.f-ir-l3'),g('.f-ir-n'),g('.f-method'),g('.f-r1r2'),g('.f-zs'),g('.f-t1'),g('.f-t5'),polarityLabel(g('.f-polarity')),phaseSeqLabel(g('.f-phaseseq')),result]
+        .map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+    });
+  };
+  exportSection('Submain', submainTbody, document.getElementById('submainInclude').checked);
+  exportSection('Circuit', tbody, document.getElementById('circuitInclude').checked);
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'test-sheet-results.csv';
+  a.click();
+});
+
+/* Save/Load Progress — a portable snapshot of everything on the sheet (header, both circuit
+   tables, photos, risk assessment) as a .json file. Unlike CSV/PDF (read-only exports) or browser
+   autosave (tied to one device), this file can be handed to anyone, on any device, and loaded back
+   into a fresh copy of this same template to keep editing exactly where it left off. */
+document.getElementById('saveJsonBtn').addEventListener('click', () => {
+  const data = serializeState();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const site = (document.getElementById('site').value || 'test-sheet').trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'test-sheet';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${site}-progress.json`;
+  a.click();
+});
+
+document.getElementById('loadJsonBtn').addEventListener('click', () => {
+  document.getElementById('loadJsonInput').click();
+});
+
+document.getElementById('loadJsonInput').addEventListener('change', async () => {
+  const input = document.getElementById('loadJsonInput');
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!confirm('Load this saved progress? This will replace everything currently on the sheet.')) { input.value = ''; return; }
+    restoreState(data);
+    setSaveStatus('Loaded from file');
+    scheduleSave();
+  } catch (e) {
+    setSaveStatus("Could not read that file — make sure it's a Progress .json exported from this sheet.", true);
+  }
+  input.value = '';
+});
+
+// Restore any saved progress for this device/browser, or start with one blank row.
+(function init(){
+  if (!storageAvailable){
+    setSaveStatus("Autosave isn't available in this preview — open the downloaded file directly in your browser for it to work.", true);
+    seedDefaultRiskRows();
+    seedDefaultInspectionRows();
+    return;
+  }
+  const saved = loadState();
+  if (saved){
+    restoreState(saved);
+    const t = saved.savedAt ? new Date(saved.savedAt) : null;
+    setSaveStatus(t ? 'Restored — last saved ' + t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Restored');
+  } else {
+    seedDefaultRiskRows();
+    seedDefaultInspectionRows();
+  }
+})();
+</script>
+</body>
+</html>
