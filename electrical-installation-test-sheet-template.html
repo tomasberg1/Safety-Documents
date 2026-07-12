@@ -106,6 +106,18 @@
   .print-value{display:none;}
   .photo-remove:hover{background:var(--red);}
 
+  .cert-declaration{font-size:13px; color:#333; line-height:1.55; margin:0 0 16px;}
+  .sig-box{
+    border:1.5px dashed #ccc; border-radius:8px; background:#fafafa; position:relative;
+    touch-action:none; height:150px; overflow:hidden;
+  }
+  .sig-box canvas{width:100%; height:100%; display:block; touch-action:none;}
+  .sig-placeholder{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    color:#aaa; font-size:13px; pointer-events:none;
+  }
+  .sig-actions{display:flex; justify-content:flex-end; margin-top:8px;}
+
   .section-subtitle{font-size:12px; color:var(--gray-text); margin:-8px 0 14px; font-weight:500;}
 
   #riskTable, #inspectionTable{border-collapse:collapse; width:100%;}
@@ -256,6 +268,10 @@
     .section-toggle{display:none;}
     .photo-remove, .photo-input{display:none !important;}
     #photosCard{page-break-before:always !important; break-before:page !important;}
+    .cert-declaration{font-size:10px;}
+    .sig-box{height:35mm; border:1px solid #999; background:#fff;}
+    .sig-actions{display:none;}
+    #certSigPlaceholder{display:none;}
     #inspectionCard{page-break-before:always !important; break-before:page !important;}
     .photo-box{aspect-ratio:auto; height:85mm; border:1px solid #999; background:#f2f2f2;}
     .photo-box:not(.has-photo){display:none;}
@@ -328,6 +344,7 @@
     .foot-note{font-size:8px; margin-top:8px; color:#555 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
 </head>
 <body>
 
@@ -568,6 +585,24 @@
     </div>
   </div>
 
+  <div class="card" id="certCard">
+    <p class="section-title">Certificate of Test</p>
+    <p class="cert-declaration">I certify that the tests detailed in this document have been carried out in accordance with AS/NZS 3000:2018 and that the results recorded are true and correct to the best of my knowledge.</p>
+    <div class="grid">
+      <div class="field"><label>Tested by</label><input id="certName" placeholder="Full name"></div>
+      <div class="field"><label>Licence / registration no.</label><input id="certLicence" placeholder="e.g. 123456"></div>
+      <div class="field"><label>Date</label><input id="certDate" type="date"></div>
+    </div>
+    <div class="field" style="margin-top:14px;">
+      <label>Signature</label>
+      <div class="sig-box" id="certSigBox">
+        <canvas id="certSigCanvas"></canvas>
+        <div class="sig-placeholder" id="certSigPlaceholder">Sign here</div>
+      </div>
+      <div class="sig-actions"><button type="button" class="btn" id="certSigClear">Clear signature</button></div>
+    </div>
+  </div>
+
   <div class="card" id="saveSubmitCard">
     <p class="section-title">Save &amp; Submit</p>
     <div class="actions">
@@ -736,6 +771,53 @@ function initPhotoSlot(key){
 }
 
 PHOTO_KEYS.forEach(initPhotoSlot);
+
+/* ---------- CERTIFICATE OF TEST — SIGNATURE PAD ---------- */
+let certPad = null;
+
+function resizeCertCanvas(){
+  const canvas = document.getElementById('certSigCanvas');
+  const box = canvas.parentElement;
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  const data = certPad && !certPad.isEmpty() ? certPad.toData() : null;
+  canvas.width = box.clientWidth * ratio;
+  canvas.height = box.clientHeight * ratio;
+  canvas.getContext('2d').scale(ratio, ratio);
+  if (certPad){
+    certPad.clear();
+    if (data) certPad.fromData(data);
+  }
+}
+
+function setupCertSig(){
+  const canvas = document.getElementById('certSigCanvas');
+  resizeCertCanvas();
+  certPad = new SignaturePad(canvas, { backgroundColor:'rgba(0,0,0,0)', penColor:'#111' });
+  certPad.addEventListener('beginStroke', () => {
+    document.getElementById('certSigPlaceholder').style.display = 'none';
+  });
+  certPad.addEventListener('endStroke', scheduleSave);
+}
+
+let certResizeTimer = null;
+function scheduleCertResize(){
+  clearTimeout(certResizeTimer);
+  certResizeTimer = setTimeout(resizeCertCanvas, 200);
+}
+window.addEventListener('resize', scheduleCertResize);
+window.addEventListener('orientationchange', scheduleCertResize);
+
+document.getElementById('certSigClear').addEventListener('click', () => {
+  certPad.clear();
+  document.getElementById('certSigPlaceholder').style.display = 'block';
+  scheduleSave();
+});
+
+document.getElementById('certName').addEventListener('input', scheduleSave);
+document.getElementById('certLicence').addEventListener('input', scheduleSave);
+document.getElementById('certDate').addEventListener('input', scheduleSave);
+
+setupCertSig();
 
 // Swap in the higher-resolution copies just before printing, and back to the compact
 // on-screen copies afterward, so print/PDF quality isn't limited by the storage-optimised
@@ -972,7 +1054,13 @@ function serializeState(){
     submainInclude: document.getElementById('submainInclude').checked,
     circuitInclude: document.getElementById('circuitInclude').checked,
   };
-  return { header, rows, submainRows, photos: { ...photos }, riskAssessment, inspectionRows, sections, savedAt: Date.now() };
+  const certificate = {
+    name: document.getElementById('certName').value,
+    licence: document.getElementById('certLicence').value,
+    date: document.getElementById('certDate').value,
+    signature: certPad && !certPad.isEmpty() ? certPad.toDataURL('image/png') : null,
+  };
+  return { header, rows, submainRows, photos: { ...photos }, riskAssessment, inspectionRows, sections, certificate, savedAt: Date.now() };
 }
 
 function setSaveStatus(text, isWarn){
@@ -1059,6 +1147,16 @@ function restoreState(data){
     data.inspectionRows.forEach(r => addInspectionRow(r));
   } else {
     seedDefaultInspectionRows();
+  }
+
+  if (data.certificate){
+    document.getElementById('certName').value = data.certificate.name || '';
+    document.getElementById('certLicence').value = data.certificate.licence || '';
+    document.getElementById('certDate').value = data.certificate.date || '';
+    if (data.certificate.signature && certPad){
+      certPad.fromDataURL(data.certificate.signature);
+      document.getElementById('certSigPlaceholder').style.display = 'none';
+    }
   }
 }
 
@@ -1528,6 +1626,10 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   document.getElementById('raSafeProceed').checked = false;
   clearAllInspectionRows();
   seedDefaultInspectionRows();
+  document.getElementById('certName').value = '';
+  document.getElementById('certLicence').value = '';
+  document.getElementById('certDate').value = '';
+  if (certPad){ certPad.clear(); document.getElementById('certSigPlaceholder').style.display = 'block'; }
   setSaveStatus('Cleared');
 });
 
