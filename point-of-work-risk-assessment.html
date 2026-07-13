@@ -928,12 +928,34 @@ async function generatePdfBase64(){
   let y = margin;
 
   const RED = [216,35,42], INK = [26,26,26], MUTED = [85,85,85], LINE = [230,230,230];
-  const logoDataUrl = document.getElementById('brandLogo')?.src || null;
+  const rawLogoUrl = document.getElementById('brandLogo')?.src || null;
+  const logoDataUrl = await flattenLogoToJpeg(rawLogoUrl, [26,26,26]);
+
+  function flattenLogoToJpeg(src, bgRgb){
+    return new Promise((resolve) => {
+      if(!src){ resolve(null); return; }
+      const img = new Image();
+      img.onload = () => {
+        try{
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = `rgb(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        }catch(e){ resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
 
   function addHeader(){
     pdf.setFillColor(26,26,26);
     pdf.rect(0, 0, pageW, 24, 'F');
-    if(logoDataUrl){ try{ pdf.addImage(logoDataUrl, 'PNG', margin, 5, 34, 8.8); }catch(e){} }
+    if(logoDataUrl){ try{ pdf.addImage(logoDataUrl, 'JPEG', margin, 5, 34, 8.8); }catch(e){} }
     pdf.setTextColor(255,255,255);
     pdf.setFont('helvetica','normal');
     pdf.setFontSize(8);
